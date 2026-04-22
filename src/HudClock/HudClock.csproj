@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HudClock</AssemblyName>
+    <RootNamespace>HudClock</RootNamespace>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: XML doc comment missing (acceptable on internal/private members) -->
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <Version>4.0.0</Version>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+    <FileVersion>4.0.0.0</FileVersion>
+    <InformationalVersion>4.0.0</InformationalVersion>
+    <Authors>Elocrypt</Authors>
+    <Product>HUD Clock</Product>
+    <Description>A client-side HUD for Vintage Story displaying time, weather, storms, rifts, rooms, and claims.</Description>
+    <Copyright>Copyright (c) 2026 Elocrypt</Copyright>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <!-- Vintage Story runtime references. Private=false prevents shipping these DLLs in the mod zip. -->
+  <ItemGroup>
+    <Reference Include="VintagestoryAPI">
+      <HintPath>$(VintagestoryDir)\VintagestoryAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VSEssentials">
+      <HintPath>$(VintagestoryDir)\Mods\VSEssentials.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VSSurvivalMod">
+      <HintPath>$(VintagestoryDir)\Mods\VSSurvivalMod.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="cairo-sharp">
+      <HintPath>$(VintagestoryDir)\Lib\cairo-sharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SkiaSharp">
+      <HintPath>$(VintagestoryDir)\Lib\SkiaSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>$(VintagestoryDir)\Lib\protobuf-net.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Mod metadata and assets are copied next to the DLL so the output folder is a ready-to-load mod. -->
+  <ItemGroup>
+    <None Include="modinfo.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="modicon.png" CopyToOutputDirectory="PreserveNewest" Condition="Exists('modicon.png')" />
+    <Content Include="assets\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    Dev-time convenience: after a successful build, copy the ready-to-load mod into the
+    game's Mods folder so F5 launches a game with the latest build available.
+    Skipped in CI and release packaging via /p:DeployMod=false.
+  -->
+  <Target Name="DeployToVintagestoryMods" AfterTargets="Build"
+          Condition="'$(DeployMod)' != 'false' AND Exists('$(VintagestoryDir)')">
+    <PropertyGroup>
+      <DeployPath>$(VintagestoryDir)\Mods\$(AssemblyName)</DeployPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_DeployFiles Include="$(OutputPath)**\*.*" Exclude="$(OutputPath)**\*.pdb;$(OutputPath)**\ref\**" />
+    </ItemGroup>
+    <MakeDir Directories="$(DeployPath)" />
+    <Copy SourceFiles="@(_DeployFiles)"
+          DestinationFolder="$(DeployPath)\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+    <Message Text="[HudClock] Deployed to $(DeployPath)" Importance="high" />
+  </Target>
+
+</Project>

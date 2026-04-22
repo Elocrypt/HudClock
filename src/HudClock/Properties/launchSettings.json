@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Vintage Story": {
+      "commandName": "Executable",
+      "executablePath": "%VINTAGE_STORY%\\Vintagestory.exe",
+      "workingDirectory": "%VINTAGE_STORY%"
+    },
+    "Vintage Story (dataPath override)": {
+      "commandName": "Executable",
+      "executablePath": "%VINTAGE_STORY%\\Vintagestory.exe",
+      "commandLineArgs": "--dataPath=\"%USERPROFILE%\\AppData\\Roaming\\VintagestoryData\"",
+      "workingDirectory": "%VINTAGE_STORY%"
+    }
+  }
+}

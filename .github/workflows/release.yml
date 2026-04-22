@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    name: Build, test, package, release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download Vintage Story server assemblies
+        run: |
+          set -e
+          mkdir -p "$HOME/vs"
+          curl -fL -o vs.tar.gz "https://cdn.vintagestory.at/gamefiles/stable/vs_server_linux-x64_1.22.0.tar.gz"
+          tar -xzf vs.tar.gz -C "$HOME/vs"
+          echo "VINTAGE_STORY=$HOME/vs" >> "$GITHUB_ENV"
+
+      - name: Restore
+        run: dotnet restore HudClock.sln
+
+      - name: Build
+        run: dotnet build HudClock.sln --configuration Release --no-restore /p:DeployMod=false
+
+      - name: Test
+        run: dotnet test HudClock.sln --configuration Release --no-build --verbosity normal
+
+      - name: Package
+        shell: pwsh
+        run: ./build/package.ps1 -Configuration Release -Version ${{ steps.version.outputs.VERSION }}
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/dist/HudClock_${{ steps.version.outputs.VERSION }}.zip
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
