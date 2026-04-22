@@ -3,12 +3,12 @@
     "Vintage Story": {
       "commandName": "Executable",
       "executablePath": "%VINTAGE_STORY%\\Vintagestory.exe",
+      "commandLineArgs": "--dataPath .\\v",
       "workingDirectory": "%VINTAGE_STORY%"
     },
-    "Vintage Story (dataPath override)": {
+    "Vintage Story (default datapath)": {
       "commandName": "Executable",
       "executablePath": "%VINTAGE_STORY%\\Vintagestory.exe",
-      "commandLineArgs": "--dataPath=\"%USERPROFILE%\\AppData\\Roaming\\VintagestoryData\"",
       "workingDirectory": "%VINTAGE_STORY%"
     }
   }

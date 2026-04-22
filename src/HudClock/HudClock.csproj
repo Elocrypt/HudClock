@@ -47,6 +47,11 @@
     </Reference>
   </ItemGroup>
 
+  <!-- Grant the test assembly access to internal types. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="HudClock.Tests" />
+  </ItemGroup>
+
   <!-- Mod metadata and assets are copied next to the DLL so the output folder is a ready-to-load mod. -->
   <ItemGroup>
     <None Include="modinfo.json" CopyToOutputDirectory="PreserveNewest" />
@@ -56,13 +61,15 @@
 
   <!--
     Dev-time convenience: after a successful build, copy the ready-to-load mod into the
-    game's Mods folder so F5 launches a game with the latest build available.
+    user-mods folder under the active data path so F5 launches a game with the latest
+    build available. The data path is the directory VS creates/uses when launched with
+    the datapath argument, matching the VintagestoryData property in Directory.Build.props.
     Skipped in CI and release packaging via /p:DeployMod=false.
   -->
   <Target Name="DeployToVintagestoryMods" AfterTargets="Build"
-          Condition="'$(DeployMod)' != 'false' AND Exists('$(VintagestoryDir)')">
+          Condition="'$(DeployMod)' != 'false' AND Exists('$(VintagestoryData)')">
     <PropertyGroup>
-      <DeployPath>$(VintagestoryDir)\Mods\$(AssemblyName)</DeployPath>
+      <DeployPath>$(VintagestoryData)\Mods\$(AssemblyName)</DeployPath>
     </PropertyGroup>
     <ItemGroup>
       <_DeployFiles Include="$(OutputPath)**\*.*" Exclude="$(OutputPath)**\*.pdb;$(OutputPath)**\ref\**" />

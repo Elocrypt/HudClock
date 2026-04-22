@@ -13,6 +13,21 @@
     <VintagestoryDir Condition="'$(VintagestoryDir)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.local/share/Vintagestory</VintagestoryDir>
   </PropertyGroup>
 
+  <!--
+    Resolve the Vintage Story user data directory (where Mods/, ModConfig/, Saves/ live).
+    Order of precedence:
+      1. Per-call / IDE-provided VintagestoryData property (highest).
+      2. VINTAGE_STORY_DATA environment variable.
+      3. Fallback on Windows: '$(VintagestoryDir)\v', which matches the launchSettings
+         datapath argument "." + backslash + "v" used by the 'Vintage Story' F5 profile.
+         On Linux, fallback to the conventional ~/.config/VintagestoryData.
+  -->
+  <PropertyGroup>
+    <VintagestoryData Condition="'$(VintagestoryData)' == '' AND '$(VINTAGE_STORY_DATA)' != ''">$(VINTAGE_STORY_DATA)</VintagestoryData>
+    <VintagestoryData Condition="'$(VintagestoryData)' == '' AND '$(OS)' == 'Windows_NT'">$(VintagestoryDir)\v</VintagestoryData>
+    <VintagestoryData Condition="'$(VintagestoryData)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.config/VintagestoryData</VintagestoryData>
+  </PropertyGroup>
+
   <!-- Shared language + nullability settings for every project in this repo. -->
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
