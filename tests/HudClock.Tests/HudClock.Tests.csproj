@@ -18,4 +18,8 @@
     <ProjectReference Include="..\..\src\HudClock\HudClock.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  
 </Project>

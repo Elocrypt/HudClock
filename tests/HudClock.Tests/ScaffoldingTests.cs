@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace HudClock.Tests;
 
 /// <summary>
