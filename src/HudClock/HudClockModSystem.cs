@@ -11,7 +11,10 @@ using HudClock.Domain.Weather;
 using HudClock.Infrastructure.Assets;
 using HudClock.Infrastructure.Input;
 using HudClock.Infrastructure.Settings;
+using HudClock.Presentation.ClaimHud;
 using HudClock.Presentation.MainHud;
+using HudClock.Presentation.SettingsDialog;
+using HudClock.Presentation.StormHud;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -21,23 +24,9 @@ namespace HudClock;
 /// <summary>
 /// Composition root and entry point for the HUD Clock mod.
 /// </summary>
-/// <remarks>
-/// Initialization is staged so each service is constructed as soon as its
-/// dependencies are available, and no sooner:
-/// <list type="bullet">
-///   <item><b>StartClientSide</b> — infrastructure (<see cref="ModLog"/>,
-///     <see cref="ISettingsStore"/>, <see cref="IconCache"/>,
-///     <see cref="KeybindRegistry"/>) whose construction only needs the
-///     client API.</item>
-///   <item><b>OnPlayerReady</b> — domain services and presentation
-///     controllers that require the world.</item>
-///   <item><b>OnLeaveWorld</b> — persist settings and dispose presentation
-///     + services that own event subscriptions.</item>
-/// </list>
-/// </remarks>
 public sealed class HudClockModSystem : ModSystem
 {
-    // Infrastructure — constructed at StartClientSide, valid for the entire mod lifetime.
+    // Infrastructure.
     private ModLog? _log;
     private ISettingsStore? _settingsStore;
     private HudClockSettings? _settings;
@@ -46,7 +35,7 @@ public sealed class HudClockModSystem : ModSystem
     private KeybindRegistry? _keybinds;
     private ICoreClientAPI? _api;
 
-    // Domain services — constructed at IsPlayerReady, torn down on LeaveWorld.
+    // Domain services.
     private ICalendarService? _calendar;
     private IWeatherService? _weather;
     private IStormService? _storm;
@@ -54,8 +43,11 @@ public sealed class HudClockModSystem : ModSystem
     private IRoomService? _room;
     private IClaimService? _claim;
 
-    // Presentation — constructed at IsPlayerReady, torn down on LeaveWorld.
+    // Presentation controllers.
     private MainHudController? _mainHud;
+    private StormHudController? _stormHud;
+    private ClaimHudController? _claimHud;
+    private SettingsDialogController? _settingsDialog;
 
     /// <inheritdoc />
     public override bool ShouldLoad(EnumAppSide forSide) => forSide == EnumAppSide.Client;
@@ -70,8 +62,6 @@ public sealed class HudClockModSystem : ModSystem
         _settingsStore = new JsonSettingsStore(api, _log);
         _settings = _settingsStore.Load();
         _iconCache = new IconCache(api, _log);
-        // Wrap Lang.Get in a lambda because the method group is ambiguous between its
-        // Lang.Get(string) and Lang.Get(string, params object[]) overloads.
         _timeFormatter = new TimeFormatter(_settings.Time, key => Lang.Get(key));
         _keybinds = new KeybindRegistry(api, _log);
 
@@ -83,12 +73,11 @@ public sealed class HudClockModSystem : ModSystem
 
     private bool OnPlayerReady(ref EnumHandling handling)
     {
-        // Guard against multiple PlayerReady firings in a single session.
         if (_calendar is not null) return true;
 
-        ICoreClientAPI api = _api ?? throw new InvalidOperationException("API not initialized before PlayerReady.");
-        ModLog log = _log ?? throw new InvalidOperationException("Log not initialized before PlayerReady.");
-        HudClockSettings settings = _settings ?? throw new InvalidOperationException("Settings not loaded before PlayerReady.");
+        ICoreClientAPI api = _api ?? throw new InvalidOperationException("API not initialized.");
+        ModLog log = _log ?? throw new InvalidOperationException("Log not initialized.");
+        HudClockSettings settings = _settings ?? throw new InvalidOperationException("Settings not loaded.");
         ITimeFormatter formatter = _timeFormatter ?? throw new InvalidOperationException("TimeFormatter not initialized.");
         IconCache iconCache = _iconCache ?? throw new InvalidOperationException("IconCache not initialized.");
         KeybindRegistry keybinds = _keybinds ?? throw new InvalidOperationException("KeybindRegistry not initialized.");
@@ -105,25 +94,56 @@ public sealed class HudClockModSystem : ModSystem
             _calendar, _weather, _rift, _room, _claim,
             iconCache, keybinds, log);
 
-        log.Notification("Domain services online; main HUD ready.");
+        _stormHud = new StormHudController(api, settings, _storm, iconCache, keybinds, log);
+        _claimHud = new ClaimHudController(api, settings, _claim, log);
+        _settingsDialog = new SettingsDialogController(api, settings, keybinds, log);
+
+        _settingsDialog.SettingsChanged += OnSettingsChanged;
+
+        log.Notification("Domain services and HUD components online.");
         return true;
+    }
+
+    private void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        try
+        {
+            _mainHud?.OnSettingsChanged();
+            _stormHud?.OnSettingsChanged();
+            _claimHud?.OnSettingsChanged();
+        }
+        catch (Exception ex)
+        {
+            _log?.Error("OnSettingsChanged propagation failed: {0}", ex.Message);
+        }
     }
 
     private void OnLeaveWorld()
     {
-        // Persist settings on world exit so any in-session changes survive a crash
-        // of the subsequent main-menu session.
-        if (_settings is not null)
+        // Capture player's current keybind mappings back into settings.
+        if (_keybinds is not null && _settings is not null)
         {
-            _settingsStore?.Save(_settings);
+            try
+            {
+                _settings.Keybinds.OpenSettings   = _keybinds.CaptureCurrent("hudclock:settingsdialog");
+                _settings.Keybinds.ToggleMainHud  = _keybinds.CaptureCurrent("hudclock:mainhud");
+                _settings.Keybinds.ToggleStormHud = _keybinds.CaptureCurrent("hudclock:stormhud");
+            }
+            catch (Exception ex)
+            {
+                _log?.Error("Keybind capture failed: {0}", ex.Message);
+            }
         }
 
-        // Dispose presentation first (ticks services), then services, then assets.
-        _mainHud?.Dispose();
-        _mainHud = null;
+        if (_settings is not null) _settingsStore?.Save(_settings);
 
-        _room?.Dispose();
-        _room = null;
+        // Tear down presentation first, then services, then shared assets.
+        _settingsDialog?.Dispose();  _settingsDialog = null;
+        _claimHud?.Dispose();        _claimHud = null;
+        _stormHud?.Dispose();        _stormHud = null;
+        _mainHud?.Dispose();         _mainHud = null;
+
+        _room?.Dispose();            _room = null;
         _calendar = null;
         _weather = null;
         _storm = null;
@@ -136,6 +156,9 @@ public sealed class HudClockModSystem : ModSystem
     /// <inheritdoc />
     public override void Dispose()
     {
+        _settingsDialog?.Dispose();
+        _claimHud?.Dispose();
+        _stormHud?.Dispose();
         _mainHud?.Dispose();
         _room?.Dispose();
         _iconCache?.Dispose();
