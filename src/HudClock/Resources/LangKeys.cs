@@ -32,6 +32,8 @@ internal static class LangKeys
         public const string OnlinePlayers = "hudclock:online-players";
 
         public const string SeasonStem = "hudclock:season-"; // + winter / spring / summer / fall
+
+        public const string MonthStem  = "hudclock:month-";  // + january..december
     }
 
     /// <summary>Temporal storm HUD messages.</summary>

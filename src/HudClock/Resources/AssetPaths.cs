@@ -20,7 +20,7 @@ internal static class AssetPaths
     /// <summary>Small icon textures shown inside the main HUD.</summary>
     public static class Room
     {
-		/// <summary>Generic "indoors" icon used when the player is in a plain closed room.</summary>
+        /// <summary>Generic "indoors" icon used when the player is in a plain closed room.</summary>
         public const string Generic    = "hudclock:textures/room/room.png";
         public const string Cellar     = "hudclock:textures/room/cellar.png";
         public const string Greenhouse = "hudclock:textures/room/greenhouse.png";

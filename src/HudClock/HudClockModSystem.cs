@@ -9,7 +9,9 @@ using HudClock.Domain.Storms;
 using HudClock.Domain.Time;
 using HudClock.Domain.Weather;
 using HudClock.Infrastructure.Assets;
+using HudClock.Infrastructure.Input;
 using HudClock.Infrastructure.Settings;
+using HudClock.Presentation.MainHud;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -24,14 +26,14 @@ namespace HudClock;
 /// dependencies are available, and no sooner:
 /// <list type="bullet">
 ///   <item><b>StartClientSide</b> — infrastructure (<see cref="ModLog"/>,
-///     <see cref="ISettingsStore"/>, <see cref="IconCache"/>) whose
-///     construction only needs the client API.</item>
-///   <item><b>OnPlayerReady</b> — domain services that require the world
-///     (calendar, weather, storms, rifts, rooms, claims).</item>
-///   <item><b>OnLeaveWorld</b> — persist settings and dispose any services
-///     that own event subscriptions.</item>
+///     <see cref="ISettingsStore"/>, <see cref="IconCache"/>,
+///     <see cref="KeybindRegistry"/>) whose construction only needs the
+///     client API.</item>
+///   <item><b>OnPlayerReady</b> — domain services and presentation
+///     controllers that require the world.</item>
+///   <item><b>OnLeaveWorld</b> — persist settings and dispose presentation
+///     + services that own event subscriptions.</item>
 /// </list>
-/// The presentation layer (viewmodels, views, keybinds) is added in the next pass.
 /// </remarks>
 public sealed class HudClockModSystem : ModSystem
 {
@@ -41,6 +43,7 @@ public sealed class HudClockModSystem : ModSystem
     private HudClockSettings? _settings;
     private IconCache? _iconCache;
     private ITimeFormatter? _timeFormatter;
+    private KeybindRegistry? _keybinds;
     private ICoreClientAPI? _api;
 
     // Domain services — constructed at IsPlayerReady, torn down on LeaveWorld.
@@ -50,6 +53,9 @@ public sealed class HudClockModSystem : ModSystem
     private IRiftService? _rift;
     private IRoomService? _room;
     private IClaimService? _claim;
+
+    // Presentation — constructed at IsPlayerReady, torn down on LeaveWorld.
+    private MainHudController? _mainHud;
 
     /// <inheritdoc />
     public override bool ShouldLoad(EnumAppSide forSide) => forSide == EnumAppSide.Client;
@@ -67,6 +73,7 @@ public sealed class HudClockModSystem : ModSystem
         // Wrap Lang.Get in a lambda because the method group is ambiguous between its
         // Lang.Get(string) and Lang.Get(string, params object[]) overloads.
         _timeFormatter = new TimeFormatter(_settings.Time, key => Lang.Get(key));
+        _keybinds = new KeybindRegistry(api, _log);
 
         api.Event.IsPlayerReady += OnPlayerReady;
         api.Event.LeaveWorld += OnLeaveWorld;
@@ -81,6 +88,10 @@ public sealed class HudClockModSystem : ModSystem
 
         ICoreClientAPI api = _api ?? throw new InvalidOperationException("API not initialized before PlayerReady.");
         ModLog log = _log ?? throw new InvalidOperationException("Log not initialized before PlayerReady.");
+        HudClockSettings settings = _settings ?? throw new InvalidOperationException("Settings not loaded before PlayerReady.");
+        ITimeFormatter formatter = _timeFormatter ?? throw new InvalidOperationException("TimeFormatter not initialized.");
+        IconCache iconCache = _iconCache ?? throw new InvalidOperationException("IconCache not initialized.");
+        KeybindRegistry keybinds = _keybinds ?? throw new InvalidOperationException("KeybindRegistry not initialized.");
 
         _calendar = new CalendarService(api);
         _weather = new WeatherService(api);
@@ -89,7 +100,12 @@ public sealed class HudClockModSystem : ModSystem
         _room = new RoomService(api, log);
         _claim = new ClaimService(api);
 
-        log.Notification("Domain services online.");
+        _mainHud = new MainHudController(
+            api, settings, formatter,
+            _calendar, _weather, _rift, _room, _claim,
+            iconCache, keybinds, log);
+
+        log.Notification("Domain services online; main HUD ready.");
         return true;
     }
 
@@ -102,7 +118,10 @@ public sealed class HudClockModSystem : ModSystem
             _settingsStore?.Save(_settings);
         }
 
-        // Dispose services that own event subscriptions; others are GC-safe.
+        // Dispose presentation first (ticks services), then services, then assets.
+        _mainHud?.Dispose();
+        _mainHud = null;
+
         _room?.Dispose();
         _room = null;
         _calendar = null;
@@ -117,6 +136,7 @@ public sealed class HudClockModSystem : ModSystem
     /// <inheritdoc />
     public override void Dispose()
     {
+        _mainHud?.Dispose();
         _room?.Dispose();
         _iconCache?.Dispose();
         base.Dispose();
