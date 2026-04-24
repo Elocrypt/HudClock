@@ -9,7 +9,8 @@ namespace HudClock.Presentation.ClaimHud;
 /// <summary>
 /// Drives the claim banner: polls the claim service at a low cadence and
 /// shows/hides the view accordingly. Respects
-/// <see cref="ClaimOptions.ShowClaimedArea"/>.
+/// <see cref="ClaimOptions.ShowClaimedArea"/>. Positioning is a fixed offset
+/// from the top-center anchor, tuned to clear VS's vanilla hover tooltip.
 /// </summary>
 internal sealed class ClaimHudController : IDisposable
 {
@@ -20,7 +21,7 @@ internal sealed class ClaimHudController : IDisposable
     private readonly IClaimService _claim;
     private readonly ClaimHudView _view;
     private readonly ModLog _log;
-    private long _tickListenerId;
+    private long _pollTickId;
     private bool _disposed;
 
     public ClaimHudController(
@@ -45,15 +46,15 @@ internal sealed class ClaimHudController : IDisposable
     {
         bool enabled = _settings.Claim.ShowClaimedArea;
 
-        if (enabled && _tickListenerId == 0)
+        if (enabled && _pollTickId == 0)
         {
-            _tickListenerId = _api.Event.RegisterGameTickListener(OnPoll, PollIntervalMs);
+            _pollTickId = _api.Event.RegisterGameTickListener(OnPoll, PollIntervalMs);
             OnPoll(0f); // prime immediately
         }
-        else if (!enabled && _tickListenerId != 0)
+        else if (!enabled && _pollTickId != 0)
         {
-            _api.Event.UnregisterGameTickListener(_tickListenerId);
-            _tickListenerId = 0;
+            _api.Event.UnregisterGameTickListener(_pollTickId);
+            _pollTickId = 0;
             _view.Hide();
         }
     }
@@ -81,10 +82,10 @@ internal sealed class ClaimHudController : IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        if (_tickListenerId != 0)
+        if (_pollTickId != 0)
         {
-            _api.Event.UnregisterGameTickListener(_tickListenerId);
-            _tickListenerId = 0;
+            _api.Event.UnregisterGameTickListener(_pollTickId);
+            _pollTickId = 0;
         }
         _view.TryClose();
         _view.Dispose();

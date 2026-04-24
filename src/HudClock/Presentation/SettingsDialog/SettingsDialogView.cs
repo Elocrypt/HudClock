@@ -162,6 +162,12 @@ internal sealed class SettingsDialogView : GuiDialog
                 (int)_settings.Storm.Display,
                 "storm",
                 (code, sel) => _settings.Storm.Display = ParseEnum<StormDisplay>(code));
+            yy = AddDropDown(c, yy, LangKeys.Settings.StormAnchor,
+                Enum.GetNames(typeof(HudAnchor)),
+                HudAnchorLocales(),
+                (int)_settings.Storm.Anchor,
+                "storm-anchor",
+                (code, sel) => _settings.Storm.Anchor = ParseEnum<HudAnchor>(code));
             yy = AddDropDown(c, yy, LangKeys.Settings.RiftDialog,
                 Enum.GetNames(typeof(RiftDisplay)),
                 RiftLocales(),

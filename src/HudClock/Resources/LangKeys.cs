@@ -89,6 +89,7 @@ internal static class LangKeys
         public const string TimeFormat  = "hudclock:settings-time-format";
         public const string Wind        = "hudclock:settings-wind";
         public const string StormDialog = "hudclock:settings-storm";
+        public const string StormAnchor = "hudclock:settings-storm-anchor";
         public const string RiftDialog  = "hudclock:settings-rift";
 
         // Dropdown option stems; the viewmodel appends a lowercase enum-derived suffix

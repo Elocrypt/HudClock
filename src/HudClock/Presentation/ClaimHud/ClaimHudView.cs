@@ -1,5 +1,6 @@
 using System;
 using HudClock.Core;
+using HudClock.Presentation.Shared;
 using HudClock.Resources;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -67,7 +68,7 @@ internal sealed class ClaimHudView : HudElement
         ElementBounds dialogBounds = ElementStdBounds
             .AutosizedMainDialog
             .WithAlignment(EnumDialogArea.CenterTop)
-            .WithFixedAlignmentOffset(0.0, GuiStyle.DialogToScreenPadding);
+            .WithFixedAlignmentOffset(0.0, HudAnchorOffsets.ClaimBannerOffsetY);
 
         ElementBounds bgBounds = ElementBounds.Fill;
         bgBounds.BothSizing = ElementSizing.FitToChildren;

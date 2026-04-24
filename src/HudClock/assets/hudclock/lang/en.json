@@ -74,6 +74,7 @@
   "hudclock:settings-wind-percentage": "Percentage",
   "hudclock:settings-wind-hidden": "Never",
   "hudclock:settings-storm": "Show temp. storm",
+  "hudclock:settings-storm-anchor": "Storm HUD position",
   "hudclock:settings-storm-always": "Always",
   "hudclock:settings-storm-triggeronly": "Approaching",
   "hudclock:settings-storm-hidden": "Never",

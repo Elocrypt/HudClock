@@ -1,8 +1,10 @@
 using System;
 using Cairo;
+using HudClock.Configuration;
 using HudClock.Core;
 using HudClock.Domain.Storms;
 using HudClock.Infrastructure.Assets;
+using HudClock.Presentation.Shared;
 using HudClock.Resources;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -11,7 +13,7 @@ using Vintagestory.API.Config;
 namespace HudClock.Presentation.StormHud;
 
 /// <summary>
-/// Small top-left panel showing temporal-storm status. Accepts a fully-decided
+/// Small panel showing temporal-storm status. Accepts a fully-decided
 /// <see cref="StormHudAction"/> from <see cref="StormHudStateMachine"/> and
 /// renders accordingly; contains no policy of its own.
 /// </summary>
@@ -26,16 +28,48 @@ internal sealed class StormHudView : HudElement
 
     private readonly IconCache _iconCache;
     private readonly ModLog _log;
+    private HudAnchor _currentAnchor;
+    private double _currentOffsetY;
 
-    public StormHudView(ICoreClientAPI capi, IconCache iconCache, ModLog log) : base(capi)
+    public StormHudView(ICoreClientAPI capi, IconCache iconCache, ModLog log, HudAnchor anchor) : base(capi)
     {
         _iconCache = iconCache ?? throw new ArgumentNullException(nameof(iconCache));
         _log = log ?? throw new ArgumentNullException(nameof(log));
+        _currentAnchor = anchor;
         Build();
     }
 
     /// <inheritdoc />
     public override string ToggleKeyCombinationCode => "hudclock:stormhud";
+
+    /// <summary>
+    /// Rebuild the dialog with a new anchor and vertical offset. Call from
+    /// the controller when the anchor changes or when Main's layout changes
+    /// (so we can re-stack below Main in shared anchors).
+    /// </summary>
+    /// <param name="anchor">Screen corner to anchor to.</param>
+    /// <param name="offsetY">
+    /// Offset in logical pixels from the anchor edge. Sign convention:
+    /// positive moves away from a top anchor (downward on screen); negative
+    /// moves away from a bottom anchor (upward on screen). The controller
+    /// picks the right sign based on anchor.
+    /// </param>
+    public void Rebuild(HudAnchor anchor, double offsetY)
+    {
+        _currentAnchor = anchor;
+        _currentOffsetY = offsetY;
+        // Dispose the old composer but don't null-out the property — VS 1.22's
+        // GuiDialog.SingleComposer setter NREs on null. Build() below assigns
+        // a fresh composer, which is all we need.
+        SingleComposer?.Dispose();
+        Build();
+    }
+
+    /// <summary>Current anchor, used by the controller for stacking offsets.</summary>
+    public HudAnchor CurrentAnchor => _currentAnchor;
+
+    /// <summary>Current offset applied to the anchor, read by the controller if needed.</summary>
+    public double CurrentOffsetY => _currentOffsetY;
 
     /// <summary>
     /// Apply an action from the state machine. Updates the dialog's visibility
@@ -77,7 +111,8 @@ internal sealed class StormHudView : HudElement
     {
         ElementBounds dialogBounds = ElementStdBounds
             .AutosizedMainDialog
-            .WithAlignment(EnumDialogArea.LeftTop)
+            .WithAlignment(_currentAnchor.ToDialogArea())
+            .WithFixedAlignmentOffset(0.0, _currentOffsetY)
             .WithFixedPadding(Padding);
 
         ElementBounds textBounds = ElementBounds.Fixed(10, LinePadding, LineWidth, LineHeight);

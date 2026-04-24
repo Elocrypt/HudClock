@@ -94,7 +94,10 @@ public sealed class HudClockModSystem : ModSystem
             _calendar, _weather, _rift, _room, _claim,
             iconCache, keybinds, log);
 
-        _stormHud = new StormHudController(api, settings, _storm, iconCache, keybinds, log);
+        // Storm takes a reference to the main controller so it can subscribe to
+        // Main's LayoutChanged event and restack itself below Main when they
+        // share an anchor. No periodic ticks or peer-list walking involved.
+        _stormHud = new StormHudController(api, settings, _storm, _mainHud, iconCache, keybinds, log);
         _claimHud = new ClaimHudController(api, settings, _claim, log);
         _settingsDialog = new SettingsDialogController(api, settings, keybinds, log);
 

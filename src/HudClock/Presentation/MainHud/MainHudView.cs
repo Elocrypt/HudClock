@@ -37,7 +37,7 @@ internal sealed class MainHudView : HudElement
     private const int LineHeight = 17;
     private const int Padding = 10;
     private const int LinePadding = 5;
-    private const int IconSize = 100;
+    private const int IconSize = 200;
     private const int RoomIconSize = 32;
 
     private readonly MainHudViewModel _viewModel;
@@ -48,6 +48,11 @@ internal sealed class MainHudView : HudElement
     // to skip lines that were not part of the last Rebuild.
     private readonly HashSet<MainHudLineKey> _currentLineKeys = new();
     private HudAnchor _currentAnchor = HudAnchor.TopLeft;
+    // Logical-pixel content height from the last successful Rebuild. Used by
+    // sibling HUDs (Storm) to stack themselves below us without having to
+    // unscale VS's post-compose abs bounds. Zero when the dialog is closed
+    // or was torn down in the empty-state branch.
+    private int _lastContentHeight;
 
     public MainHudView(ICoreClientAPI capi, MainHudViewModel viewModel, IconCache iconCache, ModLog log)
         : base(capi)
@@ -71,9 +76,11 @@ internal sealed class MainHudView : HudElement
 
         if (_viewModel.IsEmpty)
         {
-            // No content to show — dispose any existing composer so nothing renders.
-            SingleComposer?.Dispose();
-            SingleComposer = null;
+            // No content to show. Don't null SingleComposer — VS 1.22's setter NREs
+            // on null. Closing the dialog hides it; a subsequent Rebuild will
+            // replace the composer with fresh content.
+            _lastContentHeight = 0;
+            TryClose();
             return;
         }
 
@@ -90,9 +97,14 @@ internal sealed class MainHudView : HudElement
         // The right-aligned season-icon slot spans the whole stack.
         ElementBounds iconSlot = layout.AddRightSlot(LineWidth, IconSize);
 
+        // Snapshot logical content height for sibling HUDs' stacking math.
+        _lastContentHeight = layout.TotalHeight;
+
+        int solo = HudAnchorOffsets.GetSoloOffsetY(anchor);
         ElementBounds dialogBounds = ElementStdBounds
             .AutosizedMainDialog
             .WithAlignment(anchor.ToDialogArea())
+            .WithFixedAlignmentOffset(0.0, solo)
             .WithFixedPadding(Padding);
 
         ElementBounds bgBounds = ElementBounds.Fill;
@@ -102,6 +114,12 @@ internal sealed class MainHudView : HudElement
         GuiComposer composer = capi.Gui
             .CreateCompo(ToggleKeyCombinationCode, dialogBounds)
             .AddShadedDialogBG(bgBounds, withTitleBar: false, 0.0)
+            // Static custom draws rasterize once into the composer's cached
+            // background texture. That's why the controller must trigger a
+            // full Rebuild when the season or room status changes: the
+            // callback won't re-run on its own. Dynamic custom draws would
+            // re-run but render in screen coordinates rather than the
+            // composer's local space, which misplaces the icon entirely.
             .AddStaticCustomDraw(iconSlot, DrawSeasonIcon);
 
         // One AddDynamicText per visible line, named by the line key so we can
@@ -115,9 +133,11 @@ internal sealed class MainHudView : HudElement
                 LineKeyToElementName(kvp.Key));
         }
 
-        // Room indicator, bottom-right of the panel. Always laid out when the
-        // indicator is enabled in settings; the draw callback checks per-frame
-        // whether there's a current room icon to render.
+        // Room indicator, bottom-right of the panel. Laid out when the
+        // indicator is enabled in settings. Like the season icon, the
+        // bitmap is baked into the composer's cached texture at Compose
+        // time — a change in room status triggers a full Rebuild via the
+        // viewmodel's change-detection, see MainHudViewModel.Tick.
         if (_viewModel.IsRoomIndicatorVisible)
         {
             ElementBounds roomBounds = ElementBounds.FixedOffseted(
@@ -126,6 +146,16 @@ internal sealed class MainHudView : HudElement
         }
 
         SingleComposer = composer.Compose();
+
+        // Re-open if we were previously closed (e.g. after an empty-state transition).
+        // TryOpen is idempotent so calling it when already open is harmless.
+        if (!IsOpened()) TryOpen();
+
+        // Record which icon values are now baked into the static custom-draw
+        // texture, so the controller knows not to re-Rebuild on the next tick
+        // unless the icon state actually changes again.
+        _viewModel.MarkIconsBaked();
+
         UpdateTexts();
     }
 
@@ -144,6 +174,29 @@ internal sealed class MainHudView : HudElement
 
     /// <summary>Match <see cref="HudAnchor"/> to the view's current anchor.</summary>
     public bool IsCurrentAnchor(HudAnchor anchor) => _currentAnchor == anchor;
+
+    /// <summary>
+    /// Current anchor of the composed HUD. Storm HUD reads this when it
+    /// shares an anchor with Main to compute the stacking offset.
+    /// </summary>
+    public HudAnchor CurrentAnchor => _currentAnchor;
+
+    /// <summary>
+    /// Outer height of the current composed HUD in <b>logical</b> pixels
+    /// (pre-GUI-scale). Returns 0 when the HUD isn't currently showing
+    /// (empty state, not yet built). Storm reads this to offset itself
+    /// below Main when they share an anchor.
+    /// </summary>
+    /// <remarks>
+    /// Computed from <see cref="BoundsBuilder.TotalHeight"/> plus the dialog
+    /// padding rather than reading <c>SingleComposer.Bounds.OuterHeight</c>,
+    /// which is populated post-<c>CalcWorldBounds</c> in GUI-scaled screen
+    /// pixels. Feeding that scaled value back into
+    /// <c>WithFixedAlignmentOffset</c> (which expects logical pixels) would
+    /// double-scale the gap.
+    /// </remarks>
+    public double CurrentLogicalOuterHeight =>
+        (IsOpened() && _lastContentHeight > 0) ? _lastContentHeight + 2 * Padding : 0.0;
 
     // --- Draw callbacks ---
 

@@ -69,6 +69,18 @@ internal sealed class MainHudViewModel
     private ClaimInfo? _claim_cache;
     private int _onlinePlayers;
 
+    // Snapshot of what was baked into the current layout's static icons.
+    // Static custom-draws rasterize once per Compose, so the view has no way
+    // to re-paint an icon when the underlying state changes. We compare these
+    // snapshots against the current tick's values in HasVisibleIconChanged;
+    // the controller uses that flag to decide whether to call Rebuild on the
+    // view. Initial sentinel values that cannot match any real first-tick
+    // result guarantee the first Tick() reports a change — that way even an
+    // unchanged initial load correctly bakes the current season/room into
+    // the composer.
+    private EnumSeason? _lastBakedSeason;
+    private RoomStatus? _lastBakedRoomStatus;
+
     public MainHudViewModel(
         HudClockSettings settings,
         ITimeFormatter timeFormatter,
@@ -117,6 +129,29 @@ internal sealed class MainHudViewModel
         _roomStatus = _room.CurrentStatus;
         _claim_cache = _settings.Claim.ShowClaimedArea ? _claim.GetClaimAt(pos) : null;
         _onlinePlayers = _isMultiplayer ? _onlinePlayerCount() : 0;
+    }
+
+    /// <summary>
+    /// True when a visible icon (season icon, room-status icon) has changed
+    /// since the last time the view baked a static draw. The controller
+    /// checks this after each <see cref="Tick"/> and triggers a full view
+    /// Rebuild when set, because VS's <c>AddStaticCustomDraw</c> bakes the
+    /// bitmap into the composer's cached texture at Compose time and doesn't
+    /// re-run the draw callback. Text lines avoid this problem — they use
+    /// <c>AddDynamicText</c> and update via <c>SetNewText</c>.
+    /// </summary>
+    public bool HasVisibleIconChanged =>
+        _lastBakedSeason != _season || _lastBakedRoomStatus != _roomStatus;
+
+    /// <summary>
+    /// Called by the view after each successful Rebuild to snapshot which
+    /// icon values were baked into the current composition. Resets
+    /// <see cref="HasVisibleIconChanged"/> until the next change.
+    /// </summary>
+    public void MarkIconsBaked()
+    {
+        _lastBakedSeason = _season;
+        _lastBakedRoomStatus = _roomStatus;
     }
 
     // --- Visibility helpers used by the view to decide which lines to lay out. ---

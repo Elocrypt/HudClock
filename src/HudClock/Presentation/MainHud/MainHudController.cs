@@ -20,19 +20,32 @@ namespace HudClock.Presentation.MainHud;
 /// <summary>
 /// Glue between the main HUD's view, viewmodel, and the VS tick loop.
 /// Owns lifetimes, subscribes to setting changes, registers the toggle
-/// keybind, and drives the 2.5-second refresh cadence.
+/// keybind, and drives the data refresh cadence.
 /// </summary>
+/// <remarks>
+/// Notifies subscribers of <see cref="LayoutChanged"/> every time the view's
+/// layout is rebuilt (new anchor, new line set). Storm HUD subscribes to
+/// this so it can re-stack itself below Main when they share an anchor.
+/// </remarks>
 internal sealed class MainHudController : IDisposable
 {
-    private const int TickIntervalMs = 2500;
+    private const int DataTickMs = 2500;
 
     private readonly ICoreClientAPI _api;
     private readonly HudClockSettings _settings;
     private readonly MainHudView _view;
     private readonly MainHudViewModel _viewModel;
     private readonly ModLog _log;
-    private readonly long _tickListenerId;
+    private readonly long _dataTickId;
     private bool _disposed;
+
+    /// <summary>
+    /// Raised after each <see cref="MainHudView.Rebuild"/> completes — gives
+    /// sibling HUDs (Storm) a chance to re-stack themselves based on our new
+    /// size or anchor. Always raised on the main thread (inside a settings-
+    /// changed handler or constructor).
+    /// </summary>
+    public event EventHandler? LayoutChanged;
 
     public MainHudController(
         ICoreClientAPI api,
@@ -59,9 +72,6 @@ internal sealed class MainHudController : IDisposable
             rift,
             room,
             claim,
-            // Wrap Lang.Get in lambdas — the method group is ambiguous between its
-            // Lang.Get(string) and Lang.Get(string, params object[]) overloads, and
-            // the two delegates have structurally different signatures anyway.
             translate: key => Lang.Get(key),
             translateFormat: (key, args) => Lang.Get(key, args),
             playerPosition: GetPlayerPos,
@@ -81,41 +91,68 @@ internal sealed class MainHudController : IDisposable
             binding: settings.Keybinds.ToggleMainHud,
             handler: ToggleVisible);
 
-        _tickListenerId = _api.Event.RegisterGameTickListener(OnTick, TickIntervalMs);
+        _dataTickId = _api.Event.RegisterGameTickListener(OnDataTick, DataTickMs);
     }
 
-    /// <summary>Invoked by <c>ClockModSettingsController.SettingsUpdated</c>.</summary>
+    /// <summary>Current anchor — sibling HUDs use this to decide whether to stack.</summary>
+    public HudAnchor CurrentAnchor => _view.CurrentAnchor;
+
+    /// <summary>
+    /// Outer height of the current composition in <b>logical</b> pixels
+    /// (pre-GUI-scale). Zero when the view isn't currently showing. Sibling
+    /// HUDs use this to compute their stacking offset below us. See
+    /// <see cref="MainHudView.CurrentLogicalOuterHeight"/> for the rationale
+    /// behind exposing a logical-pixel height rather than VS's post-compose
+    /// scaled bounds.
+    /// </summary>
+    public double CurrentLogicalOuterHeight => _view.CurrentLogicalOuterHeight;
+
+    /// <summary>Invoked by the mod system when settings change.</summary>
     public void OnSettingsChanged()
     {
-        _viewModel.Tick();   // refresh cached data against the new settings
+        _viewModel.Tick();
         _view.Rebuild(_settings.Display.Anchor);
+        LayoutChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private bool ToggleVisible(KeyCombination _)
     {
         if (_view.IsOpened()) _view.TryClose();
         else _view.TryOpen();
+        // Visibility change affects our outer height (0 when closed) — let Storm know.
+        LayoutChanged?.Invoke(this, EventArgs.Empty);
         return true;
     }
 
-    private void OnTick(float dt)
+    private void OnDataTick(float dt)
     {
         try
         {
             _viewModel.Tick();
-            _view.UpdateTexts();
+            // Icons (season, room status) are baked into VS's static-custom-draw
+            // cache at Compose time and do not re-run the draw callback on their
+            // own. Detect a state change and trigger a full Rebuild so the new
+            // icon gets baked in. Text lines update via UpdateTexts without a
+            // rebuild, so in the common "just ticking text" path we stay on the
+            // fast path.
+            if (_viewModel.HasVisibleIconChanged)
+            {
+                _view.Rebuild(_settings.Display.Anchor);
+                LayoutChanged?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                _view.UpdateTexts();
+            }
         }
         catch (Exception ex)
         {
-            _log.Error("MainHud tick failed: {0}", ex.Message);
+            _log.Error("MainHud data tick failed: {0}", ex.Message);
         }
     }
 
     private BlockPos GetPlayerPos()
     {
-        // VS 1.22 deprecated Entity.SidedPos in favor of Entity.Pos. Using var here
-        // lets the compiler infer whatever concrete type Pos returns without us
-        // needing to import its namespace.
         var pos = _api.World?.Player?.Entity?.Pos;
         return pos?.AsBlockPos ?? new BlockPos(0, 0, 0);
     }
@@ -125,7 +162,7 @@ internal sealed class MainHudController : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        _api.Event.UnregisterGameTickListener(_tickListenerId);
+        _api.Event.UnregisterGameTickListener(_dataTickId);
         _view.TryClose();
         _view.Dispose();
     }
