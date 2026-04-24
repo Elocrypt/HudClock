@@ -180,5 +180,5 @@ MIT — see [LICENSE](LICENSE). Icons and textures are original work and ship un
 
 ## Credits
 
-- Original **Simple HUD Clock** by [Daniel Kellerdt](https://github.com/dakellerdt) (3.x and earlier), maintained across multiple Vintage Story versions.
+- Original **Simple HUD Clock** by [Rhonen](https://mods.vintagestory.at/show/user/0CDE138CD639F871B831) (3.x and earlier), maintained across multiple Vintage Story versions.
 - 4.0 rewrite by [Elocrypt](https://github.com/Elocrypt).
