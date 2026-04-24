@@ -20,7 +20,12 @@ namespace HudClock.Presentation.StormHud;
 /// </summary>
 internal sealed class StormHudController : IDisposable
 {
-    private const int PollIntervalMs = 5000;
+    // Poll at 1s so the approaching-storm countdown (rendered as hh:mm of
+    // in-game time) updates at in-game-minute resolution. VS's default world
+    // speed is ~60x real-time, so one real second equals one in-game minute.
+    // GetStatus is cheap (compiled-delegate field access + two GetValues),
+    // so polling every second has no meaningful cost.
+    private const int PollIntervalMs = 1000;
 
     private readonly ICoreClientAPI _api;
     private readonly HudClockSettings _settings;

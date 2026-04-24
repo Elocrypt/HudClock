@@ -1,0 +1,58 @@
+[33mcommit 19b65a15243e5ccd696519971d488a29e23c3aca[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: 𝗲𝗹𝗼 <Elocrypt@gmail.com>
+Date:   Fri Apr 24 04:12:51 2026 -0700
+
+    HUD positioning rework: fixed offsets replacing peer-list stacker
+    
+    Removes the 250ms peer-list stacker that walked VS's dialog list and
+    wrote to absOffsetY (an engine-owned field per the VS wiki). Replaces
+    it with fixed per-anchor offsets applied via WithFixedAlignmentOffset
+    (the documented knob). Storm HUD subscribes to Main's LayoutChanged
+    event to re-stack below Main when they share an anchor.
+    
+    Key files:
+      HudAnchorOffsets.cs   new; anchor -> Y-offset table, tunable constants
+      MainHudView.cs        exposes CurrentLogicalOuterHeight
+      MainHudController.cs  fires LayoutChanged; rebuilds on icon change
+      MainHudViewModel.cs   HasVisibleIconChanged / MarkIconsBaked
+      StormHudController.cs subscribes to LayoutChanged; sign-flips for
+                            bottom anchors since WithFixedAlignmentOffset's
+                            Y grows away from the anchor edge regardless
+                            of side
+      ClaimHudView.cs       uses ClaimBannerOffsetY from the shared table
+    
+    Offset values (verified at 4K / GUI scale 1.0):
+      TopRight        260    clear minimap
+      TopCenter       110    clear tooltip + claim banner
+      BottomCenter   -150    sign flip + clear hotbar
+      InterHudPadding  -5    tighten Main/Storm stacking
+    
+    Also fixes a pre-existing issue where the season icon and room-status
+    icon never refreshed between settings-toggle Rebuilds: VS's
+    AddStaticCustomDraw bakes the draw callback into the composer's
+    cached texture at Compose time and doesn't re-run it. MainHudViewModel
+    now tracks last-baked icon state; the controller's tick detects a
+    change via HasVisibleIconChanged and triggers a full Rebuild instead
+    of the text-only UpdateTexts fast path.
+    
+    Also bumps IconSize 100 -> 200 and refreshes the large season icon art.
+
+ src/HudClock/Configuration/StormOptions.cs         |  10 [32m+++[m
+ src/HudClock/HudClockModSystem.cs                  |   5 [32m+[m[31m-[m
+ .../Presentation/ClaimHud/ClaimHudController.cs    |  21 [32m+++[m[31m---[m
+ src/HudClock/Presentation/ClaimHud/ClaimHudView.cs |   3 [32m+[m[31m-[m
+ .../Presentation/MainHud/MainHudController.cs      |  69 [32m++++++++++++++[m[31m----[m
+ src/HudClock/Presentation/MainHud/MainHudView.cs   |  67 [32m+++++++++++++++[m[31m--[m
+ .../Presentation/MainHud/MainHudViewModel.cs       |  35 [32m+++++++++[m
+ .../SettingsDialog/SettingsDialogView.cs           |   6 [32m++[m
+ .../Presentation/Shared/HudAnchorOffsets.cs        |  81 [32m+++++++++++++++++++++[m
+ .../Presentation/StormHud/StormHudController.cs    |  72 [32m+++++++++++++++[m[31m---[m
+ src/HudClock/Presentation/StormHud/StormHudView.cs |  41 [32m++++++++++[m[31m-[m
+ src/HudClock/Resources/LangKeys.cs                 |   1 [32m+[m
+ src/HudClock/assets/hudclock/lang/en.json          |   1 [32m+[m
+ .../assets/hudclock/textures/hud/fall-large.png    | Bin [31m8784[m -> [32m29758[m bytes
+ .../assets/hudclock/textures/hud/spring-large.png  | Bin [31m10487[m -> [32m32690[m bytes
+ .../assets/hudclock/textures/hud/summer-large.png  | Bin [31m10136[m -> [32m30639[m bytes
+ .../hudclock/textures/hud/tempstorm-large.png      | Bin [31m10302[m -> [32m11442[m bytes
+ .../assets/hudclock/textures/hud/winter-large.png  | Bin [31m9909[m -> [32m40177[m bytes
+ 18 files changed, 365 insertions(+), 47 deletions(-)

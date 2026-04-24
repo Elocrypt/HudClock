@@ -46,10 +46,24 @@ jobs:
         shell: pwsh
         run: ./build/package.ps1 -Configuration Release -Version ${{ steps.version.outputs.VERSION }}
 
+      # Extract only the current version's section from CHANGELOG.md.
+      # The release body would otherwise include every historical release.
+      - name: Extract release notes
+        run: |
+          awk -v ver="${{ steps.version.outputs.VERSION }}" '
+            $0 ~ "^## \\[" ver "\\]" { grab = 1; next }
+            grab && /^## \[/ { exit }
+            grab { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "No changelog section found for version ${{ steps.version.outputs.VERSION }}." >&2
+            exit 1
+          fi
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: build/dist/HudClock_${{ steps.version.outputs.VERSION }}.zip
-          body_path: CHANGELOG.md
+          body_path: RELEASE_NOTES.md
           draft: false
           prerelease: false
