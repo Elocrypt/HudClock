@@ -1,6 +1,6 @@
 {
   "type": "code",
-  "modid": "hudclockpatch",
+  "modid": "hudclock",
   "name": "HUD Clock",
   "authors": [ "Elocrypt" ],
   "description": "A client-side HUD displaying in-game time, weather, storms, rifts, rooms, and claims.",
