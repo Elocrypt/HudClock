@@ -6,7 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [4.0.0] - 2026-04-24
+## [4.1.0] - TBD
+
+### Added
+
+- **Icon theme selector.** A new Appearance section in the settings dialog lets you choose between the refreshed 4.x art (*Modern*, default) and the original 3.x art (*Classic*). Switching themes updates the HUD immediately and affects the season background, the storm dialog icon, and the room-indicator icons together.
+
+### Changed
+
+- Asset layout reorganized from flat `textures/hud/*.png` and `textures/room/*.png` into theme subfolders (`modern/` and `classic/`). Users don't see this; mod authors referencing these paths directly will need to update.
+
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.1.0...HEAD
+[4.1.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.1.0
+
+## [4.0.0] - TBD
 
 Complete rewrite of the mod on a new architecture. Feature parity with 3.x is preserved; internal structure is not. Settings and keybinds do not migrate from earlier versions — reconfigure via the settings dialog (default `Shift+A`) on first launch.
 
@@ -44,5 +57,4 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.0.0...HEAD
 [4.0.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.0.0

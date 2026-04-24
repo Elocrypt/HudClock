@@ -58,5 +58,9 @@
   "hudclock:settings-storm-always": "常に表示",
   "hudclock:settings-storm-triggeronly": "接近中のみ",
   "hudclock:settings-storm-hidden": "表示しない",
-  "hudclock:settings-rift": "リフト活動量(活動時)"
+  "hudclock:settings-rift": "リフト活動量(活動時)",
+  "hudclock:settings-section-appearance": "外観",
+  "hudclock:settings-icon-theme": "アイコンテーマ",
+  "hudclock:settings-icon-theme-modern": "モダン",
+  "hudclock:settings-icon-theme-classic": "クラシック"
 }

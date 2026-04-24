@@ -80,6 +80,11 @@ internal sealed class MainHudViewModel
     // the composer.
     private EnumSeason? _lastBakedSeason;
     private RoomStatus? _lastBakedRoomStatus;
+    // Also track the theme baked into the composer — a theme change has to
+    // force a Rebuild so the new art gets rasterized into the static-draw
+    // cache. Without this, toggling Modern/Classic in settings wouldn't
+    // take effect until the next season or room transition.
+    private IconTheme? _lastBakedTheme;
 
     public MainHudViewModel(
         HudClockSettings settings,
@@ -132,16 +137,19 @@ internal sealed class MainHudViewModel
     }
 
     /// <summary>
-    /// True when a visible icon (season icon, room-status icon) has changed
-    /// since the last time the view baked a static draw. The controller
-    /// checks this after each <see cref="Tick"/> and triggers a full view
-    /// Rebuild when set, because VS's <c>AddStaticCustomDraw</c> bakes the
-    /// bitmap into the composer's cached texture at Compose time and doesn't
-    /// re-run the draw callback. Text lines avoid this problem — they use
-    /// <c>AddDynamicText</c> and update via <c>SetNewText</c>.
+    /// True when a visible icon (season icon, room-status icon) or the
+    /// active theme has changed since the last time the view baked a static
+    /// draw. The controller checks this after each <see cref="Tick"/> and
+    /// triggers a full view Rebuild when set, because VS's
+    /// <c>AddStaticCustomDraw</c> bakes the bitmap into the composer's
+    /// cached texture at Compose time and doesn't re-run the draw callback.
+    /// Text lines avoid this problem — they use <c>AddDynamicText</c> and
+    /// update via <c>SetNewText</c>.
     /// </summary>
     public bool HasVisibleIconChanged =>
-        _lastBakedSeason != _season || _lastBakedRoomStatus != _roomStatus;
+        _lastBakedSeason != _season
+        || _lastBakedRoomStatus != _roomStatus
+        || _lastBakedTheme != _settings.Appearance.IconTheme;
 
     /// <summary>
     /// Called by the view after each successful Rebuild to snapshot which
@@ -152,6 +160,7 @@ internal sealed class MainHudViewModel
     {
         _lastBakedSeason = _season;
         _lastBakedRoomStatus = _roomStatus;
+        _lastBakedTheme = _settings.Appearance.IconTheme;
     }
 
     // --- Visibility helpers used by the view to decide which lines to lay out. ---
@@ -295,10 +304,10 @@ internal sealed class MainHudViewModel
     /// <summary>Season icon key (for the large background image in the HUD).</summary>
     public string? SeasonIconPath => _season switch
     {
-        EnumSeason.Spring => AssetPaths.Hud.SeasonSpring,
-        EnumSeason.Summer => AssetPaths.Hud.SeasonSummer,
-        EnumSeason.Fall   => AssetPaths.Hud.SeasonFall,
-        EnumSeason.Winter => AssetPaths.Hud.SeasonWinter,
+        EnumSeason.Spring => AssetPaths.Hud.SeasonSpring(_settings.Appearance.IconTheme),
+        EnumSeason.Summer => AssetPaths.Hud.SeasonSummer(_settings.Appearance.IconTheme),
+        EnumSeason.Fall   => AssetPaths.Hud.SeasonFall(_settings.Appearance.IconTheme),
+        EnumSeason.Winter => AssetPaths.Hud.SeasonWinter(_settings.Appearance.IconTheme),
         _ => null,
     };
 
@@ -308,11 +317,12 @@ internal sealed class MainHudViewModel
         get
         {
             if (!_settings.Room.ShowRoomIndicator) return null;
+            IconTheme theme = _settings.Appearance.IconTheme;
             return _roomStatus switch
             {
-                RoomStatus.Greenhouse => AssetPaths.Room.Greenhouse,
-                RoomStatus.SmallRoom  => AssetPaths.Room.Cellar,
-                RoomStatus.Room       => AssetPaths.Room.Generic,
+                RoomStatus.Greenhouse => AssetPaths.Room.Greenhouse(theme),
+                RoomStatus.SmallRoom  => AssetPaths.Room.Cellar(theme),
+                RoomStatus.Room       => AssetPaths.Room.Generic(theme),
                 _ => null,
             };
         }

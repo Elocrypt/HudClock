@@ -61,5 +61,9 @@
   "hudclock:settings-rift": "Активность разлома",
   "hudclock:settings-rift-always": "Всегда",
   "hudclock:settings-rift-worldconfigdependent": "Когда активен в мире",
-  "hudclock:settings-rift-hidden": "Никогда"
+  "hudclock:settings-rift-hidden": "Никогда",
+  "hudclock:settings-section-appearance": "Внешний вид",
+  "hudclock:settings-icon-theme": "Тема иконок",
+  "hudclock:settings-icon-theme-modern": "Современная",
+  "hudclock:settings-icon-theme-classic": "Классическая"
 }

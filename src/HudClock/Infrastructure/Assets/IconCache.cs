@@ -43,7 +43,7 @@ internal sealed class IconCache : IDisposable
     /// null if the asset cannot be loaded; a warning is logged for the first
     /// failure per path.
     /// </summary>
-    /// <param name="assetPath">An asset path such as <c>hudclock:textures/hud/spring-large.png</c>.</param>
+    /// <param name="assetPath">An asset path such as <c>hudclock:textures/hud/modern/spring-large.png</c>.</param>
     public BitmapRef? Get(string assetPath)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(IconCache));

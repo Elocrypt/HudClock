@@ -58,5 +58,9 @@
   "hudclock:settings-storm-always": "Sempre",
   "hudclock:settings-storm-triggeronly": "Aproximando",
   "hudclock:settings-storm-hidden": "Nunca",
-  "hudclock:settings-rift": "Atividade da fenda (quando ativo)"
+  "hudclock:settings-rift": "Atividade da fenda (quando ativo)",
+  "hudclock:settings-section-appearance": "Aspeto",
+  "hudclock:settings-icon-theme": "Tema dos ícones",
+  "hudclock:settings-icon-theme-modern": "Moderno",
+  "hudclock:settings-icon-theme-classic": "Clássico"
 }

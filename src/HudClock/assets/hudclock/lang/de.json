@@ -61,5 +61,9 @@
   "hudclock:settings-rift": "Riss-Aktivität",
   "hudclock:settings-rift-always": "Immer",
   "hudclock:settings-rift-worldconfigdependent": "Wenn in Welt aktiv",
-  "hudclock:settings-rift-hidden": "Garnicht"
+  "hudclock:settings-rift-hidden": "Garnicht",
+  "hudclock:settings-section-appearance": "Erscheinungsbild",
+  "hudclock:settings-icon-theme": "Symboldesign",
+  "hudclock:settings-icon-theme-modern": "Modern",
+  "hudclock:settings-icon-theme-classic": "Klassisch"
 }

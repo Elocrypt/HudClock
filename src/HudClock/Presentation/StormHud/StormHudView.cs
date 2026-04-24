@@ -27,13 +27,15 @@ internal sealed class StormHudView : HudElement
     private const string TextElementName = "hudclock:storm-text";
 
     private readonly IconCache _iconCache;
+    private readonly HudClockSettings _settings;
     private readonly ModLog _log;
     private HudAnchor _currentAnchor;
     private double _currentOffsetY;
 
-    public StormHudView(ICoreClientAPI capi, IconCache iconCache, ModLog log, HudAnchor anchor) : base(capi)
+    public StormHudView(ICoreClientAPI capi, IconCache iconCache, HudClockSettings settings, ModLog log, HudAnchor anchor) : base(capi)
     {
         _iconCache = iconCache ?? throw new ArgumentNullException(nameof(iconCache));
+        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _log = log ?? throw new ArgumentNullException(nameof(log));
         _currentAnchor = anchor;
         Build();
@@ -132,7 +134,7 @@ internal sealed class StormHudView : HudElement
 
     private void DrawStormIcon(Context ctx, ImageSurface surface, ElementBounds bounds)
     {
-        BitmapRef? bitmap = _iconCache.Get(AssetPaths.Hud.Storm);
+        BitmapRef? bitmap = _iconCache.Get(AssetPaths.Hud.Storm(_settings.Appearance.IconTheme));
         if (bitmap is null) return;
         surface.Image(bitmap, (int)bounds.drawX, (int)bounds.drawY, (int)bounds.InnerWidth, (int)bounds.InnerHeight);
     }

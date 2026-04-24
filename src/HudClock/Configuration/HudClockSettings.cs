@@ -15,6 +15,7 @@ internal sealed class HudClockSettings
     public int SchemaVersion { get; set; } = 1;
 
     public DisplayOptions Display { get; set; } = new();
+    public AppearanceOptions Appearance { get; set; } = new();
     public TimeOptions Time { get; set; } = new();
     public WeatherOptions Weather { get; set; } = new();
     public StormOptions Storm { get; set; } = new();

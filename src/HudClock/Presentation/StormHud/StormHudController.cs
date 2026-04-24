@@ -52,7 +52,7 @@ internal sealed class StormHudController : IDisposable
         _main = main ?? throw new ArgumentNullException(nameof(main));
         _log = log ?? throw new ArgumentNullException(nameof(log));
 
-        _view = new StormHudView(api, iconCache, log, settings.Storm.Anchor);
+        _view = new StormHudView(api, iconCache, settings, log, settings.Storm.Anchor);
 
         // Initial layout pass using the current offset, before the keybind
         // fires or the first poll. Without this the view sits at offset 0 on

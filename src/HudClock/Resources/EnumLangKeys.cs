@@ -53,4 +53,11 @@ internal static class EnumLangKeys
         RiftDisplay.Hidden               => "hidden",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
     };
+
+    public static string ToKeySuffix(this IconTheme value) => value switch
+    {
+        IconTheme.Modern  => "modern",
+        IconTheme.Classic => "classic",
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+    };
 }

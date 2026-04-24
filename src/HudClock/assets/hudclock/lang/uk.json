@@ -61,5 +61,9 @@
   "hudclock:settings-rift": "Активність розломів",
   "hudclock:settings-rift-always": "Завжди",
   "hudclock:settings-rift-worldconfigdependent": "Коли активно у світі",
-  "hudclock:settings-rift-hidden": "Ніколи"
+  "hudclock:settings-rift-hidden": "Ніколи",
+  "hudclock:settings-section-appearance": "Зовнішній вигляд",
+  "hudclock:settings-icon-theme": "Тема піктограм",
+  "hudclock:settings-icon-theme-modern": "Сучасна",
+  "hudclock:settings-icon-theme-classic": "Класична"
 }

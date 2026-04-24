@@ -68,6 +68,7 @@ internal static class LangKeys
 
         // Section headers (new in 4.0 for the redesigned layout).
         public const string SectionDisplay     = "hudclock:settings-section-display";
+        public const string SectionAppearance  = "hudclock:settings-section-appearance";
         public const string SectionTime        = "hudclock:settings-section-time";
         public const string SectionWeather     = "hudclock:settings-section-weather";
         public const string SectionEvents      = "hudclock:settings-section-events";
@@ -86,6 +87,7 @@ internal static class LangKeys
 
         // Dropdown labels.
         public const string HudPosition = "hudclock:settings-hud-position";
+        public const string IconTheme   = "hudclock:settings-icon-theme";
         public const string TimeFormat  = "hudclock:settings-time-format";
         public const string Wind        = "hudclock:settings-wind";
         public const string StormDialog = "hudclock:settings-storm";
@@ -95,6 +97,7 @@ internal static class LangKeys
         // Dropdown option stems; the viewmodel appends a lowercase enum-derived suffix
         // from EnumLangKeys, which is why these look incomplete on their own.
         public const string HudPositionStem = "hudclock:settings-hud-position-";
+        public const string IconThemeStem   = "hudclock:settings-icon-theme-";
         public const string TimeFormatStem  = "hudclock:settings-time-format-";
         public const string WindStem        = "hudclock:settings-wind-";
         public const string StormStem       = "hudclock:settings-storm-";

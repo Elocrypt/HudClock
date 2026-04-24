@@ -119,6 +119,17 @@ public class HudClockSettingsDefaultsTests
         Assert.True(_defaults.Room.ShowRoomIndicator);
     }
 
+    // --- Appearance ---
+
+    [Fact]
+    public void Icon_theme_defaults_to_Modern()
+    {
+        // Fresh installs should see the refreshed 4.x art. Users upgrading
+        // from 4.0.0 with no Appearance section in their settings file
+        // deserialize to this default as well.
+        Assert.Equal(IconTheme.Modern, _defaults.Appearance.IconTheme);
+    }
+
     // --- Keybinds: defaults must match 3.x so existing muscle memory still works. ---
 
     [Fact]

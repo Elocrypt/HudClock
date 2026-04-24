@@ -300,17 +300,29 @@ public class MainHudViewModelTests
     }
 
     [Fact]
-    public void Season_icon_path_matches_season()
+    public void Season_icon_path_matches_season_on_default_modern_theme()
     {
         var calendar = new FakeCalendarService { Season = EnumSeason.Fall };
 
         var vm = MakeVm(calendar: calendar);
 
-        Assert.Equal("hudclock:textures/hud/fall-large.png", vm.SeasonIconPath);
+        Assert.Equal("hudclock:textures/hud/modern/fall-large.png", vm.SeasonIconPath);
     }
 
     [Fact]
-    public void Room_icon_path_matches_status()
+    public void Season_icon_path_resolves_classic_theme_when_selected()
+    {
+        var settings = new HudClockSettings();
+        settings.Appearance.IconTheme = IconTheme.Classic;
+        var calendar = new FakeCalendarService { Season = EnumSeason.Fall };
+
+        var vm = MakeVm(settings: settings, calendar: calendar);
+
+        Assert.Equal("hudclock:textures/hud/classic/fall-large.png", vm.SeasonIconPath);
+    }
+
+    [Fact]
+    public void Room_icon_path_matches_status_on_default_modern_theme()
     {
         var settings = new HudClockSettings();
         settings.Room.ShowRoomIndicator = true;
@@ -318,7 +330,20 @@ public class MainHudViewModelTests
 
         var vm = MakeVm(settings: settings, room: room);
 
-        Assert.Equal("hudclock:textures/room/greenhouse.png", vm.RoomIconPath);
+        Assert.Equal("hudclock:textures/room/modern/greenhouse.png", vm.RoomIconPath);
+    }
+
+    [Fact]
+    public void Room_icon_path_resolves_classic_theme_when_selected()
+    {
+        var settings = new HudClockSettings();
+        settings.Room.ShowRoomIndicator = true;
+        settings.Appearance.IconTheme = IconTheme.Classic;
+        var room = new FakeRoomService { CurrentStatus = global::HudClock.Domain.Rooms.RoomStatus.Greenhouse };
+
+        var vm = MakeVm(settings: settings, room: room);
+
+        Assert.Equal("hudclock:textures/room/classic/greenhouse.png", vm.RoomIconPath);
     }
 
     // --- Constructor guards ---

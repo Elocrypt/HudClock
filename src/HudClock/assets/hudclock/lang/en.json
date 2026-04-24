@@ -81,5 +81,9 @@
   "hudclock:settings-rift": "Rift activity",
   "hudclock:settings-rift-always": "Always",
   "hudclock:settings-rift-worldconfigdependent": "When in world active",
-  "hudclock:settings-rift-hidden": "Never"
+  "hudclock:settings-rift-hidden": "Never",
+  "hudclock:settings-section-appearance": "Appearance",
+  "hudclock:settings-icon-theme": "Icon theme",
+  "hudclock:settings-icon-theme-modern": "Modern",
+  "hudclock:settings-icon-theme-classic": "Classic"
 }

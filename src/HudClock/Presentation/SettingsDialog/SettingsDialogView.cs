@@ -120,6 +120,17 @@ internal sealed class SettingsDialogView : GuiDialog
             return yy;
         });
 
+        y = AddSection(composer, y, LangKeys.Settings.SectionAppearance, (c, yy) =>
+        {
+            yy = AddDropDown(c, yy, LangKeys.Settings.IconTheme,
+                Enum.GetNames(typeof(IconTheme)),
+                IconThemeLocales(),
+                (int)_settings.Appearance.IconTheme,
+                "icon-theme",
+                (code, sel) => _settings.Appearance.IconTheme = ParseEnum<IconTheme>(code));
+            return yy;
+        });
+
         y = AddSection(composer, y, LangKeys.Settings.SectionTime, (c, yy) =>
         {
             yy = AddSwitch(c, yy, LangKeys.Settings.ShowDate, "date",
@@ -281,6 +292,7 @@ internal sealed class SettingsDialogView : GuiDialog
         => (T)Enum.Parse(typeof(T), code);
 
     private static string[] HudAnchorLocales() => LocalizeEnumNames<HudAnchor>(LangKeys.Settings.HudPositionStem);
+    private static string[] IconThemeLocales() => LocalizeEnumNames<IconTheme>(LangKeys.Settings.IconThemeStem);
     private static string[] TimeFormatLocales() => LocalizeEnumNames<TimeFormat>(LangKeys.Settings.TimeFormatStem);
     private static string[] WindLocales() => LocalizeEnumNames<WindDisplay>(LangKeys.Settings.WindStem);
     private static string[] StormLocales() => LocalizeEnumNames<StormDisplay>(LangKeys.Settings.StormStem);
@@ -311,6 +323,7 @@ internal sealed class SettingsDialogView : GuiDialog
         return value switch
         {
             HudAnchor a      => a.ToKeySuffix(),
+            IconTheme it     => it.ToKeySuffix(),
             TimeFormat t     => t.ToKeySuffix(),
             WindDisplay w    => w.ToKeySuffix(),
             StormDisplay s   => s.ToKeySuffix(),

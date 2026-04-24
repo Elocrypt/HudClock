@@ -61,5 +61,9 @@
   "hudclock:settings-rift": "Activité des fissures temporelles",
   "hudclock:settings-rift-always": "Toujours",
   "hudclock:settings-rift-worldconfigdependent": "Quand active dans le monde",
-  "hudclock:settings-rift-hidden": "Jamais"
+  "hudclock:settings-rift-hidden": "Jamais",
+  "hudclock:settings-section-appearance": "Apparence",
+  "hudclock:settings-icon-theme": "Thème d'icônes",
+  "hudclock:settings-icon-theme-modern": "Moderne",
+  "hudclock:settings-icon-theme-classic": "Classique"
 }

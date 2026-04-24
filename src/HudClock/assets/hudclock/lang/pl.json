@@ -61,5 +61,9 @@
   "hudclock:settings-rift": "Aktywność szczelin",
   "hudclock:settings-rift-always": "Zawsze",
   "hudclock:settings-rift-worldconfigdependent": "Aktywne w świecie",
-  "hudclock:settings-rift-hidden": "Nigdy"
+  "hudclock:settings-rift-hidden": "Nigdy",
+  "hudclock:settings-section-appearance": "Wygląd",
+  "hudclock:settings-icon-theme": "Motyw ikon",
+  "hudclock:settings-icon-theme-modern": "Nowoczesny",
+  "hudclock:settings-icon-theme-classic": "Klasyczny"
 }

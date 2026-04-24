@@ -61,5 +61,9 @@
   "hudclock:settings-rift": "Atividade de fenda",
   "hudclock:settings-rift-always": "Sempre",
   "hudclock:settings-rift-worldconfigdependent": "Quando estiver ativo no mundo",
-  "hudclock:settings-rift-hidden": "Nunca"
+  "hudclock:settings-rift-hidden": "Nunca",
+  "hudclock:settings-section-appearance": "Aparência",
+  "hudclock:settings-icon-theme": "Tema dos ícones",
+  "hudclock:settings-icon-theme-modern": "Moderno",
+  "hudclock:settings-icon-theme-classic": "Clássico"
 }

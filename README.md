@@ -62,6 +62,10 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 - Offsets tuned to avoid the minimap, hotbar, hover tooltip, and coordinate readout
 - Individual lines can be toggled off one at a time
 
+### Appearance
+- **Icon theme selector** — pick between *Modern* (refreshed 4.x art) or *Classic* (the original 3.x art) from settings
+- Season, storm, and room-indicator icons all swap together when the theme changes
+
 </td>
 </tr>
 </table>
@@ -79,9 +83,9 @@ Client-side only — no server install required.
 
 ## Using it
 
-- **Settings dialog:** <kbd>Shift</kbd>+<kbd>O</kbd> (rebindable in the game's control settings).
-- **Toggle the main HUD:** <kbd>Ctrl</kbd>+<kbd>U</kbd> (rebindable).
-- **Toggle the storm dialog:** <kbd>Ctrl</kbd>+<kbd>I</kbd> (rebindable).
+- **Settings dialog:** <kbd>Shift</kbd>+<kbd>A</kbd> (rebindable in the game's control settings).
+- **Toggle the main HUD:** <kbd>Ctrl</kbd>+<kbd>G</kbd> (rebindable).
+- **Toggle the storm dialog:** <kbd>Ctrl</kbd>+<kbd>[</kbd> (rebindable).
 
 Everything else lives in the settings dialog — line visibility, HUD position, storm/rift policy, temperature unit, wind format, time format. Changes save automatically and persist across worlds.
 
@@ -93,7 +97,7 @@ Editing the JSON directly while the game is running works but a settings-dialog 
 
 ## Compatibility
 
-- **Vintage Story 1.22.0** or later. Earlier versions aren't supported — the [3.x and below lines](https://mods.vintagestory.at/hudclock#tab-files) runs on 1.21 and below.
+- **Vintage Story 1.22.0** or later. Earlier versions aren't supported — the [3.x line](https://github.com/Elocrypt/HudClock/tree/v3) runs on 1.21 and below.
 - Client-side only. Safe to use on multiplayer servers the mod isn't installed on.
 - No known conflicts. The mod reads from (but never writes to) VS's temporal-storm and rift systems via reflection, which is why each VS version is pinned explicitly — an API shape change will gracefully degrade those two lines rather than crash the HUD.
 
@@ -176,5 +180,5 @@ MIT — see [LICENSE](LICENSE). Icons and textures are original work and ship un
 
 ## Credits
 
-- Original **Simple HUD Clock** by [Rhonen](https://mods.vintagestory.at/list/mod?sortby=lastReleased&sortdir=d&text=&side=&a=0CDE138CD639F871B831&mv=&c=&t=) (3.x and earlier), maintained across multiple Vintage Story versions.
+- Original **Simple HUD Clock** by [Daniel Kellerdt](https://github.com/dakellerdt) (3.x and earlier), maintained across multiple Vintage Story versions.
 - 4.0 rewrite by [Elocrypt](https://github.com/Elocrypt).

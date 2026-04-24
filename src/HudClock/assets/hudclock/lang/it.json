@@ -58,5 +58,9 @@
   "hudclock:settings-storm-always": "Sempre",
   "hudclock:settings-storm-triggeronly": "In avvicinamento",
   "hudclock:settings-storm-hidden": "Mai",
-  "hudclock:settings-rift": "Attività Spaccatura (quando attivo)"
+  "hudclock:settings-rift": "Attività Spaccatura (quando attivo)",
+  "hudclock:settings-section-appearance": "Aspetto",
+  "hudclock:settings-icon-theme": "Tema icone",
+  "hudclock:settings-icon-theme-modern": "Moderno",
+  "hudclock:settings-icon-theme-classic": "Classico"
 }

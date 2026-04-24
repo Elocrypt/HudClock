@@ -57,4 +57,12 @@ public class EnumLangKeysTests
     {
         Assert.Equal(expected, ((RiftDisplay)raw).ToKeySuffix());
     }
+
+    [Theory]
+    [InlineData((int)IconTheme.Modern,  "modern")]
+    [InlineData((int)IconTheme.Classic, "classic")]
+    public void IconTheme_maps_to_suffix(int raw, string expected)
+    {
+        Assert.Equal(expected, ((IconTheme)raw).ToKeySuffix());
+    }
 }
