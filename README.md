@@ -83,9 +83,9 @@ Client-side only — no server install required.
 
 ## Using it
 
-- **Settings dialog:** <kbd>Shift</kbd>+<kbd>A</kbd> (rebindable in the game's control settings).
-- **Toggle the main HUD:** <kbd>Ctrl</kbd>+<kbd>G</kbd> (rebindable).
-- **Toggle the storm dialog:** <kbd>Ctrl</kbd>+<kbd>[</kbd> (rebindable).
+- **Settings dialog:** <kbd>Shift</kbd>+<kbd>O</kbd> (rebindable in the game's control settings).
+- **Toggle the main HUD:** <kbd>Ctrl</kbd>+<kbd>U</kbd> (rebindable).
+- **Toggle the storm dialog:** <kbd>Ctrl</kbd>+<kbd>I</kbd> (rebindable).
 
 Everything else lives in the settings dialog — line visibility, HUD position, storm/rift policy, temperature unit, wind format, time format. Changes save automatically and persist across worlds.
 
@@ -97,7 +97,7 @@ Editing the JSON directly while the game is running works but a settings-dialog 
 
 ## Compatibility
 
-- **Vintage Story 1.22.0** or later. Earlier versions aren't supported — the [3.x line](https://github.com/Elocrypt/HudClock/tree/v3) runs on 1.21 and below.
+- **Vintage Story 1.22.0** or later. Earlier versions aren't supported — the [3.x and below lines](https://mods.vintagestory.at/hudclock#tab-files) runs on 1.21 and below.
 - Client-side only. Safe to use on multiplayer servers the mod isn't installed on.
 - No known conflicts. The mod reads from (but never writes to) VS's temporal-storm and rift systems via reflection, which is why each VS version is pinned explicitly — an API shape change will gracefully degrade those two lines rather than crash the HUD.
 
