@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [4.2.1] - 2026/04/25
+
+### Fixed
+
+- HUD layout now dynamically adjusts the season icon size based on the selected theme. The layout builder correctly allocates 200px for the Modern theme and 100px for the Classic theme, resolving an issue where the Classic theme was forced into a hardcoded 200px bound.
+
 ## [4.2.0] - 2026/04/25
 
 ### Added
@@ -24,9 +30,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Intoxication line no longer requires the settings dialog to be opened and closed before showing or hiding when intoxication crosses zero. The HUD now detects when the set of visible lines changes between ticks and triggers a rebuild automatically.
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.2.0...HEAD
-[4.2.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.0
-
 ## [4.1.0] - 2026/04/24
 
 ### Added
@@ -36,8 +39,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Asset layout reorganized from flat `textures/hud/*.png` and `textures/room/*.png` into theme subfolders (`modern/` and `classic/`). Users don't see this; mod authors referencing these paths directly will need to update.
-
-[4.1.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.1.0
 
 ## [4.0.0] - 2026/04/24
 
@@ -77,4 +78,8 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.2.1...HEAD
+[4.2.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.1
+[4.2.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.0
+[4.1.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.1.0
 [4.0.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.0.0
