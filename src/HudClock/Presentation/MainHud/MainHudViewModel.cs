@@ -472,6 +472,9 @@ internal sealed class MainHudViewModel
         }
     }
 
+    /// <summary>Size of the season icon, in pixels.</summary>
+    public int SeasonIconSize => _settings.Appearance.IconTheme == IconTheme.Classic ? 100 : 200;
+
     /// <summary>Season icon key (for the large background image in the HUD).</summary>
     public string? SeasonIconPath => _season switch
     {

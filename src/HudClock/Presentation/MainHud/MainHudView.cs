@@ -37,7 +37,6 @@ internal sealed class MainHudView : HudElement
     private const int LineHeight = 17;
     private const int Padding = 10;
     private const int LinePadding = 5;
-    private const int IconSize = 200;
     private const int RoomIconSize = 32;
 
     private readonly MainHudViewModel _viewModel;
@@ -95,7 +94,7 @@ internal sealed class MainHudView : HudElement
         }
 
         // The right-aligned season-icon slot spans the whole stack.
-        ElementBounds iconSlot = layout.AddRightSlot(LineWidth, IconSize);
+        ElementBounds iconSlot = layout.AddRightSlot(LineWidth, _viewModel.SeasonIconSize);
 
         // Snapshot logical content height for sibling HUDs' stacking math.
         _lastContentHeight = layout.TotalHeight;
