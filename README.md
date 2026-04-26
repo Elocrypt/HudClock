@@ -40,6 +40,10 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 - Visibility modes: *always shown*, *only when a storm is imminent or active*, or *hidden*
 - Independent screen anchor so you can park it in a different corner than the main HUD
 
+### Appearance
+- **Icon theme selector** — pick between *Modern* (refreshed 4.x art) or *Classic* (the original 3.x art) from settings
+- Season, storm, and room-indicator icons all swap together when the theme changes
+
 </td>
 <td width="50%" valign="top">
 
@@ -66,10 +70,6 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 - Any of six screen anchors: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
 - Offsets tuned to avoid the minimap, hotbar, hover tooltip, and coordinate readout
 - Individual lines can be toggled off one at a time
-
-### Appearance
-- **Icon theme selector** — pick between *Modern* (refreshed 4.x art) or *Classic* (the original 3.x art) from settings
-- Season, storm, and room-indicator icons all swap together when the theme changes
 
 </td>
 </tr>
@@ -108,7 +108,7 @@ Editing the JSON directly while the game is running works but a settings-dialog 
 
 ## Languages
 
-English, German, French, Italian, Japanese, Polish, Portuguese (Brazil), Portuguese (Portugal), Russian, Ukrainian. The game picks the right language automatically based on your client locale. Contributions welcome.
+English, Spanish (Latin American), Spanish (Castilian), German, French, Italian, Japanese, Polish, Portuguese (Brazil), Portuguese (Portugal), Russian, Ukrainian. The game picks the right language automatically based on your client locale. Contributions welcome.
 
 ---
 
