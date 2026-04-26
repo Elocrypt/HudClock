@@ -80,6 +80,7 @@
   "hudclock:settings-icon-theme": "Тема иконок",
   "hudclock:settings-icon-theme-modern": "Современная",
   "hudclock:settings-icon-theme-classic": "Классическая",
+  "hudclock:settings-icon-theme-custom": "Пользовательский",
   "hudclock:body-temperature-prefix": "Тело: {0} ({1} {2})",
   "hudclock:intoxication": "Опьянение: {0}%",
   "hudclock:settings-section-player-stats": "Статистика игрока",

@@ -86,6 +86,7 @@
   "hudclock:settings-icon-theme": "Icon theme",
   "hudclock:settings-icon-theme-modern": "Modern",
   "hudclock:settings-icon-theme-classic": "Classic",
+  "hudclock:settings-icon-theme-custom": "Custom",
   "hudclock:body-temperature-prefix": "Body: {0} ({1} {2})",
   "hudclock:intoxication": "Intoxication: {0}%",
   "hudclock:settings-section-player-stats": "Player stats",

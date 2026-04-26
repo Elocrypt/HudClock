@@ -61,6 +61,7 @@ public class EnumLangKeysTests
     [Theory]
     [InlineData((int)IconTheme.Modern,  "modern")]
     [InlineData((int)IconTheme.Classic, "classic")]
+    [InlineData((int)IconTheme.Custom,  "custom")]
     public void IconTheme_maps_to_suffix(int raw, string expected)
     {
         Assert.Equal(expected, ((IconTheme)raw).ToKeySuffix());

@@ -56,8 +56,24 @@ internal sealed class IconCache : IDisposable
 
         try
         {
-            IAsset asset = _api.Assets.Get(new AssetLocation(assetPath));
-            BitmapRef bitmap = asset.ToBitmap(_api);
+            // TryGet returns null for missing files instead of throwing.
+            // Custom-theme users may not have shipped overrides for every
+            // slot, so a missing-file path needs to short-circuit to null
+            // and let the caller's guard skip the draw rather than throw.
+            IAsset? asset = _api.Assets.TryGet(new AssetLocation(assetPath));
+            if (asset is null)
+            {
+                _log.Warning("Icon asset not found: '{0}'", assetPath);
+                return null;
+            }
+
+            BitmapRef? bitmap = asset.ToBitmap(_api);
+            if (bitmap is null)
+            {
+                _log.Warning("Icon '{0}' failed to decode", assetPath);
+                return null;
+            }
+
             _bitmaps[assetPath] = bitmap;
             return bitmap;
         }

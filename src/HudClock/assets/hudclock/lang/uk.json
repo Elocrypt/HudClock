@@ -80,6 +80,7 @@
   "hudclock:settings-icon-theme": "Тема піктограм",
   "hudclock:settings-icon-theme-modern": "Сучасна",
   "hudclock:settings-icon-theme-classic": "Класична",
+  "hudclock:settings-icon-theme-custom": "Користувацький",
   "hudclock:body-temperature-prefix": "Тіло: {0} ({1} {2})",
   "hudclock:intoxication": "Сп'яніння: {0}%",
   "hudclock:settings-section-player-stats": "Статистика гравця",

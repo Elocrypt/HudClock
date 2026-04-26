@@ -41,8 +41,9 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 - Independent screen anchor so you can park it in a different corner than the main HUD
 
 ### Appearance
-- **Icon theme selector** — pick between *Modern* (refreshed 4.x art) or *Classic* (the original 3.x art) from settings
+- **Icon theme selector** — pick between *Modern* (refreshed 4.x art), *Classic* (the original 3.x art), or *Custom* (your own textures via a texture pack)
 - Season, storm, and room-indicator icons all swap together when the theme changes
+- For Custom: drop PNGs into `assets/hudclock/textures/hud/custom/` (`spring.png`, `summer.png`, `fall.png`, `winter.png`, `tempstorm.png`) and `assets/hudclock/textures/room/custom/` (`room.png`, `cellar.png`, `greenhouse.png`), or override the same paths with a standard Vintage Story texture pack
 
 </td>
 <td width="50%" valign="top">

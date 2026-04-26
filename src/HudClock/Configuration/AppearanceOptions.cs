@@ -11,6 +11,16 @@ internal enum IconTheme
 
     /// <summary>Original 3.x art. Simpler and pixel-matched to the 3.x layout.</summary>
     Classic,
+
+    /// <summary>
+    /// User-supplied art under <c>assets/hudclock/textures/{hud,room}/custom/</c>.
+    /// The mod ships transparent placeholders so the HUD layout still
+    /// resolves cleanly when no custom art is present; users override
+    /// individual files via a standard Vintage Story texture pack or by
+    /// dropping PNGs into the custom/ folders directly. Reserves the same
+    /// 200×200 season-icon column as <see cref="Modern"/>.
+    /// </summary>
+    Custom,
 }
 
 /// <summary>Options controlling visual appearance unrelated to what the HUD shows.</summary>

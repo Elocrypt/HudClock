@@ -39,6 +39,22 @@ internal sealed class MainHudView : HudElement
     private const int LinePadding = 5;
     private const int RoomIconSize = 32;
 
+    /// <summary>
+    /// Square pixel size to reserve for the season-icon column. Theme-
+    /// dependent because Modern art ships at 200×200 while Classic art is
+    /// 100×100; reserving 200px for Classic produced empty whitespace
+    /// (fixed in 4.2.1). Custom theme matches Modern's 200×200 reservation
+    /// — texture-pack authors can ship art at any size and VS scales it
+    /// to fit, so the larger column gives the most room.
+    /// </summary>
+    private static int IconSize(IconTheme theme) => theme switch
+    {
+        IconTheme.Classic => 100,
+        IconTheme.Modern  => 200,
+        IconTheme.Custom  => 200,
+        _ => 200,
+    };
+
     private readonly MainHudViewModel _viewModel;
     private readonly IconCache _iconCache;
     private readonly ModLog _log;
@@ -93,8 +109,9 @@ internal sealed class MainHudView : HudElement
             _currentLineKeys.Add(key);
         }
 
-        // The right-aligned season-icon slot spans the whole stack.
-        ElementBounds iconSlot = layout.AddRightSlot(LineWidth, _viewModel.SeasonIconSize);
+        // The right-aligned season-icon slot spans the whole stack. Width
+        // varies by theme — see IconSize(theme) for the rationale.
+        ElementBounds iconSlot = layout.AddRightSlot(LineWidth, IconSize(_viewModel.CurrentIconTheme));
 
         // Snapshot logical content height for sibling HUDs' stacking math.
         _lastContentHeight = layout.TotalHeight;

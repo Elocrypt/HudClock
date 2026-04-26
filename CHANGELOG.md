@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [4.2.2] - TBD
+
+### Added
+
+- **Custom icon theme.** A third option in the icon-theme dropdown alongside Modern and Classic. Selects textures from `assets/hudclock/textures/hud/custom/` (named `spring.png`, `summer.png`, `fall.png`, `winter.png`, `tempstorm.png`) and `assets/hudclock/textures/room/custom/` (named `room.png`, `cellar.png`, `greenhouse.png`). Mod ships transparent placeholders so the HUD layout still renders cleanly when no override is present; users override individual textures by either dropping PNGs directly into the mod's asset folders or — recommended — shipping a standard Vintage Story texture pack that overrides the same paths. No external dependencies, no extra libraries.
+- Custom theme reserves the same 200×200 season-icon column as Modern. Texture-pack authors can ship art at any resolution and Vintage Story scales it to fit.
+
 ## [4.2.1] - 2026/04/25
 
 ### Fixed
@@ -78,7 +85,8 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.2.1...HEAD
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.2.2...HEAD
+[4.2.2]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.2
 [4.2.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.1
 [4.2.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.0
 [4.1.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.1.0

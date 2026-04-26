@@ -80,6 +80,7 @@
   "hudclock:settings-icon-theme": "Symboldesign",
   "hudclock:settings-icon-theme-modern": "Modern",
   "hudclock:settings-icon-theme-classic": "Klassisch",
+  "hudclock:settings-icon-theme-custom": "Benutzerdefiniert",
   "hudclock:body-temperature-prefix": "Körper: {0} ({1} {2})",
   "hudclock:intoxication": "Trunkenheit: {0}%",
   "hudclock:settings-section-player-stats": "Spielerstatus",

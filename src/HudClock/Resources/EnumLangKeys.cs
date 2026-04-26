@@ -58,6 +58,7 @@ internal static class EnumLangKeys
     {
         IconTheme.Modern  => "modern",
         IconTheme.Classic => "classic",
+		IconTheme.Custom  => "custom",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
     };
 }

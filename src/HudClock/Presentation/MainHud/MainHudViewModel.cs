@@ -472,8 +472,12 @@ internal sealed class MainHudViewModel
         }
     }
 
-    /// <summary>Size of the season icon, in pixels.</summary>
-    public int SeasonIconSize => _settings.Appearance.IconTheme == IconTheme.Classic ? 100 : 200;
+    /// <summary>
+    /// Currently active icon theme. The view reads this to choose
+    /// theme-appropriate column widths during Rebuild — Modern and Custom
+    /// reserve a 200×200 season-icon slot, Classic reserves 100×100.
+    /// </summary>
+    public IconTheme CurrentIconTheme => _settings.Appearance.IconTheme;
 
     /// <summary>Season icon key (for the large background image in the HUD).</summary>
     public string? SeasonIconPath => _season switch
