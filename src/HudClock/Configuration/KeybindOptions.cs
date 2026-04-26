@@ -33,12 +33,12 @@ internal sealed class Keybind
 /// </summary>
 internal sealed class KeybindOptions
 {
-    /// <summary>Opens the mod settings dialog. Default: <c>Shift+A</c>.</summary>
+    /// <summary>Opens the mod settings dialog. Default: <c>Shift+O</c>.</summary>
     public Keybind OpenSettings { get; set; } = new(keyCode: 97, shift: true);
 
-    /// <summary>Toggles the main HUD on/off. Default: <c>Ctrl+G</c>.</summary>
+    /// <summary>Toggles the main HUD on/off. Default: <c>Ctrl+U</c>.</summary>
     public Keybind ToggleMainHud { get; set; } = new(keyCode: 103, ctrl: true);
 
-    /// <summary>Toggles the temporal storm dialog on/off. Default: <c>Ctrl+[</c>.</summary>
+    /// <summary>Toggles the temporal storm dialog on/off. Default: <c>Ctrl+I</c>.</summary>
     public Keybind ToggleStormHud { get; set; } = new(keyCode: 91, ctrl: true);
 }

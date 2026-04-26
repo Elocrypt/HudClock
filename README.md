@@ -31,6 +31,7 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 ### Weather
 - Current **temperature** at the player's position, Celsius or Fahrenheit
 - **Wind speed** as either a Beaufort-scale descriptor or a percentage
+- Optional **rainfall** line using the same labels as the vanilla Environment dialog
 - Clean, textured icons for spring, summer, fall, and winter
 
 ### Temporal storms
@@ -56,6 +57,10 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 
 ### Multiplayer
 - Optional **online player count** line — automatically hidden in single-player
+
+### Player stats
+- Optional **body temperature comfort indicator** — appears when you're getting cold (`cool` with deviation, escalating to `FREEZING` at the damage threshold), hidden when comfortable
+- Optional **intoxication** line shown only while the player is actually intoxicated
 
 ### Layout
 - Any of six screen anchors: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right

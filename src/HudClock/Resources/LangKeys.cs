@@ -28,6 +28,28 @@ internal static class LangKeys
         public const string WindPrefix       = "hudclock:wind-prefix";
         public const string WindBeaufortStem = "hudclock:wind-beaufort-"; // + 0..12
 
+        /// <summary>
+        /// Format: "Body: {0} ({1} {2})" where {0} is a localized state
+        /// label (cool/freezing), {1} is a signed delta from normal
+        /// (e.g. "-2.4"), and {2} is the unit (°C / °F).
+        /// </summary>
+        public const string BodyTemperaturePrefix = "hudclock:body-temperature-prefix";
+
+        /// <summary>State label: below normal but not yet taking damage.</summary>
+        public const string BodyTempStateCool = "hudclock:body-temperature-state-cool";
+
+        /// <summary>State label: at or below freezing-damage threshold.</summary>
+        public const string BodyTempStateFreezing = "hudclock:body-temperature-state-freezing";
+
+        /// <summary>Format: "Intoxication: {0}%" — {0} is an integer 1..100.</summary>
+        public const string Intoxication = "hudclock:intoxication";
+
+        /// <summary>Format: "Rainfall: {0}" where {0} is a localized bucket label.</summary>
+        public const string RainfallPrefix = "hudclock:rainfall-prefix";
+
+        /// <summary>Stem for rainfall buckets: + "rare" / "light" / "moderate" / "high" / "veryhigh".</summary>
+        public const string RainfallStem = "hudclock:rainfall-";
+
         /// <summary>Format: "Players online: {0}".</summary>
         public const string OnlinePlayers = "hudclock:online-players";
 
@@ -71,19 +93,23 @@ internal static class LangKeys
         public const string SectionAppearance  = "hudclock:settings-section-appearance";
         public const string SectionTime        = "hudclock:settings-section-time";
         public const string SectionWeather     = "hudclock:settings-section-weather";
+        public const string SectionPlayerStats = "hudclock:settings-section-player-stats";
         public const string SectionEvents      = "hudclock:settings-section-events";
         public const string SectionMultiplayer = "hudclock:settings-section-multiplayer";
 
         // Switch labels.
-        public const string ShowSeason        = "hudclock:settings-show-season";
-        public const string ShowTemperature   = "hudclock:settings-show-temperature";
-        public const string Fahrenheit        = "hudclock:settings-fahrenheit";
-        public const string ShowDate          = "hudclock:settings-show-date";
-        public const string ShowTime          = "hudclock:settings-show-time";
-        public const string ShowRealtime      = "hudclock:settings-show-realtime";
-        public const string ShowRoom          = "hudclock:settings-show-room";
-        public const string ShowOnlinePlayers = "hudclock:settings-show-online-players";
-        public const string ShowClaim         = "hudclock:settings-show-claim";
+        public const string ShowSeason           = "hudclock:settings-show-season";
+        public const string ShowTemperature      = "hudclock:settings-show-temperature";
+        public const string Fahrenheit           = "hudclock:settings-fahrenheit";
+        public const string ShowRainfall         = "hudclock:settings-show-rainfall";
+        public const string ShowDate             = "hudclock:settings-show-date";
+        public const string ShowTime             = "hudclock:settings-show-time";
+        public const string ShowRealtime         = "hudclock:settings-show-realtime";
+        public const string ShowRoom             = "hudclock:settings-show-room";
+        public const string ShowBodyTemperature  = "hudclock:settings-show-body-temperature";
+        public const string ShowIntoxication     = "hudclock:settings-show-intoxication";
+        public const string ShowOnlinePlayers    = "hudclock:settings-show-online-players";
+        public const string ShowClaim            = "hudclock:settings-show-claim";
 
         // Dropdown labels.
         public const string HudPosition = "hudclock:settings-hud-position";

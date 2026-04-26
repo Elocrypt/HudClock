@@ -3,6 +3,7 @@ using HudClock.Configuration;
 using HudClock.Core;
 using HudClock.Domain.Calendar;
 using HudClock.Domain.Claims;
+using HudClock.Domain.Player;
 using HudClock.Domain.Rifts;
 using HudClock.Domain.Rooms;
 using HudClock.Domain.Time;
@@ -56,6 +57,7 @@ internal sealed class MainHudController : IDisposable
         IRiftService rift,
         IRoomService room,
         IClaimService claim,
+        IPlayerStatsService playerStats,
         IconCache iconCache,
         KeybindRegistry keybinds,
         ModLog log)
@@ -72,6 +74,7 @@ internal sealed class MainHudController : IDisposable
             rift,
             room,
             claim,
+            playerStats,
             translate: key => Lang.Get(key),
             translateFormat: (key, args) => Lang.Get(key, args),
             playerPosition: GetPlayerPos,

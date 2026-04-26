@@ -130,6 +130,29 @@ public class HudClockSettingsDefaultsTests
         Assert.Equal(IconTheme.Modern, _defaults.Appearance.IconTheme);
     }
 
+    // --- Player stats ---
+
+    [Fact]
+    public void PlayerStats_body_temperature_defaults_off()
+    {
+        // Default off — survival-stat lines opt-in. Users who want them
+        // enable explicitly via settings.
+        Assert.False(_defaults.PlayerStats.ShowBodyTemperature);
+    }
+
+    [Fact]
+    public void PlayerStats_intoxication_defaults_off()
+    {
+        Assert.False(_defaults.PlayerStats.ShowIntoxication);
+    }
+
+    [Fact]
+    public void Weather_rainfall_defaults_off()
+    {
+        // Off by default — rainfall is opt-in like the player-stats lines.
+        Assert.False(_defaults.Weather.ShowRainfall);
+    }
+
     // --- Keybinds: defaults must match 3.x so existing muscle memory still works. ---
 
     [Fact]

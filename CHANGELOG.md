@@ -6,7 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [4.1.0] - TBD
+## [4.2.0] - 2026/04/25
+
+### Added
+
+- **Body temperature comfort indicator.** Optional new HUD line that warns when the player is getting cold. Hidden under comfortable conditions (matches Status HUD Continued's convention). Shows `cool` with the deviation from normal when below 37 °C raw, and `FREEZING` when at or below 33 °C raw — the same threshold the survival mod uses to start freezing damage. Displays the deviation in the player's chosen unit (°C or °F via the existing Weather toggle). The HUD deliberately does not show an absolute body temperature: the raw watched-attribute value differs from the character GUI's "Body Temperature" display by design (the GUI assembles its number client-side from clothing, wetness, and climate inputs that aren't a single attribute), and a comfort indicator is more actionable than a number that disagrees with vanilla.
+- **Intoxication line.** Optional new HUD line showing the player's current intoxication as a percentage. Hidden while sober (matches the Status HUD Continued convention) so the line doesn't sit at "0%" most of a playthrough.
+- **Rainfall line.** Optional new HUD line showing current rainfall using the same labels as the vanilla Environment dialog (Rare, Light, Moderate, High, Very high). Off by default; toggle in the Weather section.
+- New **Player stats** section in the settings dialog containing the body-temp and intoxication toggles. Both default off — they're survival-mode features that opt in.
+- Spanish localization (`es-es` and `es-419`).
+
+### Changed
+
+- Internal `TemperatureString` formatter now takes the value as a parameter so world temp and body temp can share the unit-conversion path.
+
+### Fixed
+
+- Intoxication line no longer requires the settings dialog to be opened and closed before showing or hiding when intoxication crosses zero. The HUD now detects when the set of visible lines changes between ticks and triggers a rebuild automatically.
+
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.2.0...HEAD
+[4.2.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.0
+
+## [4.1.0] - 2026/04/24
 
 ### Added
 
@@ -16,19 +37,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Asset layout reorganized from flat `textures/hud/*.png` and `textures/room/*.png` into theme subfolders (`modern/` and `classic/`). Users don't see this; mod authors referencing these paths directly will need to update.
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.1.0...HEAD
 [4.1.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.1.0
 
-## [4.0.0] - TBD
+## [4.0.0] - 2026/04/24
 
-Complete rewrite of the mod on a new architecture. Feature parity with 3.x is preserved; internal structure is not. Settings and keybinds do not migrate from earlier versions — reconfigure via the settings dialog (default `Shift+A`) on first launch.
+Complete rewrite of the mod on a new architecture. Feature parity with 3.x is preserved; internal structure is not. Settings and keybinds do not migrate from earlier versions — reconfigure via the settings dialog (default `Shift+O`) on first launch.
 
 ### Added
 
 - Separate HUD position anchor for the storm dialog, independent of the main HUD position. Either can be placed in any of the six screen corners (top/bottom × left/center/right).
 - Per-minute countdown updates on the approaching-storm timer. The text re-renders at in-game-minute resolution (every second in real-time at default world speed) instead of the previous 5-second cadence.
 - Automatic icon refresh when the season or room-status changes. Icons update within one HUD tick (≤2.5 s) without needing to reopen the settings dialog.
-- New large season icons (200 × 200) with refreshed art.
+- New large season icons (200 × 100) with refreshed art.
 
 ### Changed
 
@@ -53,7 +73,7 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 
 ### Removed
 
-- Settings migration from 3.x is not supported; existing settings reset on first run.
+- Settings migration from 3.x original and 1.x patch is not supported; existing settings reset on first run.
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 

@@ -21,6 +21,7 @@ public class MainHudViewModelTests
         FakeRiftService? rift = null,
         FakeRoomService? room = null,
         FakeClaimService? claim = null,
+        FakePlayerStatsService? playerStats = null,
         bool isMultiplayer = false,
         int onlinePlayers = 0)
     {
@@ -30,10 +31,11 @@ public class MainHudViewModelTests
         rift ??= new FakeRiftService();
         room ??= new FakeRoomService();
         claim ??= new FakeClaimService();
+        playerStats ??= new FakePlayerStatsService();
         var formatter = new StubTimeFormatter();
 
         var vm = new MainHudViewModel(
-            settings, formatter, calendar, weather, rift, room, claim,
+            settings, formatter, calendar, weather, rift, room, claim, playerStats,
             translate: Identity,
             translateFormat: IdentityFormat,
             playerPosition: () => new BlockPos(0, 0, 0),
@@ -230,6 +232,205 @@ public class MainHudViewModelTests
         Assert.Contains(",", vm.SeasonAndTemperatureText);
     }
 
+    // --- Body temperature (comfort signal) ---
+
+    [Fact]
+    public void Body_temperature_hidden_when_setting_off()
+    {
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = false;
+        var stats = new FakePlayerStatsService { BodyTemperatureCelsius = 33.0f };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Null(vm.BodyTemperatureText);
+        Assert.False(vm.IsBodyTemperatureLineVisible);
+    }
+
+    [Fact]
+    public void Body_temperature_hidden_when_attribute_missing()
+    {
+        // Setting on but the underlying WatchedAttribute is missing — service
+        // returns null. Line stays hidden so we don't show fake or stale data.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService { BodyTemperatureCelsius = null };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Null(vm.BodyTemperatureText);
+        Assert.False(vm.IsBodyTemperatureLineVisible);
+    }
+
+    [Theory]
+    [InlineData(45.0f)]  // raw max
+    [InlineData(41.0f)]  // spawn default (NormalBodyTemperature + 4)
+    [InlineData(37.0f)]  // exactly normal — boundary, hide
+    public void Body_temperature_hidden_when_at_or_above_normal(float raw)
+    {
+        // Comfortable / warm states should hide the line. The player
+        // doesn't need a number when they're fine.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService { BodyTemperatureCelsius = raw };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Null(vm.BodyTemperatureText);
+        Assert.False(vm.IsBodyTemperatureLineVisible);
+        Assert.False(vm.IsFreezing);
+    }
+
+    [Fact]
+    public void Body_temperature_below_normal_shows_cool_state_with_signed_delta()
+    {
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService { BodyTemperatureCelsius = 34.6f };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.NotNull(vm.BodyTemperatureText);
+        Assert.Contains("state-cool", vm.BodyTemperatureText);
+        Assert.Contains("-2.4", vm.BodyTemperatureText);  // 34.6 - 37 = -2.4
+        Assert.False(vm.IsFreezing);
+    }
+
+    [Fact]
+    public void Body_temperature_at_freezing_threshold_marks_freezing()
+    {
+        // 33.0 is the damage threshold from EntityBehaviorBodyTemperature
+        // (NormalBodyTemperature - CurBodyTemperature > 4 → damage).
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService { BodyTemperatureCelsius = 33.0f };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.NotNull(vm.BodyTemperatureText);
+        Assert.Contains("state-freezing", vm.BodyTemperatureText);
+        Assert.Contains("-4.0", vm.BodyTemperatureText);
+        Assert.True(vm.IsFreezing);
+    }
+
+    [Fact]
+    public void Body_temperature_well_below_freezing_still_marks_freezing()
+    {
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService { BodyTemperatureCelsius = 31.0f };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Contains("state-freezing", vm.BodyTemperatureText);
+        Assert.Contains("-6.0", vm.BodyTemperatureText);
+        Assert.True(vm.IsFreezing);
+    }
+
+    [Fact]
+    public void Body_temperature_delta_scales_for_fahrenheit()
+    {
+        // Delta of -2.4 °C = -4.32 °F. The signed-delta format rounds
+        // to one decimal, so we expect "-4.3".
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        settings.Weather.Fahrenheit = true;
+        var stats = new FakePlayerStatsService { BodyTemperatureCelsius = 34.6f };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Contains("-4.3", vm.BodyTemperatureText);
+        Assert.Contains("°F", vm.BodyTemperatureText);
+    }
+
+    // --- Intoxication ---
+
+    [Fact]
+    public void Intoxication_hidden_when_setting_off()
+    {
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowIntoxication = false;
+        var stats = new FakePlayerStatsService { Intoxication = 0.5f };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Null(vm.IntoxicationText);
+        Assert.False(vm.IsIntoxicationLineVisible);
+    }
+
+    [Fact]
+    public void Intoxication_hidden_when_zero_even_if_setting_on()
+    {
+        // Sober player should not see the line — matches Status HUD Continued.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowIntoxication = true;
+        var stats = new FakePlayerStatsService { Intoxication = 0f };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Null(vm.IntoxicationText);
+        Assert.False(vm.IsIntoxicationLineVisible);
+    }
+
+    [Fact]
+    public void Intoxication_renders_rounded_percent_from_normalized_value()
+    {
+        // 0.456 -> 46% (banker's rounding via Math.Round defaults to even, but
+        // 0.456 * 100 = 45.6 which always rounds to 46 regardless of mode).
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowIntoxication = true;
+        var stats = new FakePlayerStatsService { Intoxication = 0.456f };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.NotNull(vm.IntoxicationText);
+        Assert.Contains("46", vm.IntoxicationText);
+        Assert.Contains("intoxication", vm.IntoxicationText);
+    }
+
+    // --- Rainfall ---
+
+    [Fact]
+    public void Rainfall_hidden_when_setting_off()
+    {
+        var settings = new HudClockSettings();
+        settings.Weather.ShowRainfall = false;
+        var weather = new FakeWeatherService { Rainfall = 0.5f };
+
+        var vm = MakeVm(settings: settings, weather: weather);
+
+        Assert.Null(vm.RainfallText);
+        Assert.False(vm.IsRainfallLineVisible);
+    }
+
+    [Theory]
+    [InlineData(0.00f, "rare")]
+    [InlineData(0.09f, "rare")]
+    [InlineData(0.10f, "light")]
+    [InlineData(0.29f, "light")]
+    [InlineData(0.30f, "moderate")]
+    [InlineData(0.54f, "moderate")]
+    [InlineData(0.55f, "high")]
+    [InlineData(0.79f, "high")]
+    [InlineData(0.80f, "veryhigh")]
+    [InlineData(1.00f, "veryhigh")]
+    public void Rainfall_buckets_match_thresholds(float value, string expectedBucketStem)
+    {
+        // The viewmodel should map normalized rainfall to vanilla
+        // Environment-dialog-style buckets at the documented thresholds.
+        // The test asserts the bucket stem appears in the output, since the
+        // identity translator returns the lang key as-is and it includes the
+        // stem.
+        var settings = new HudClockSettings();
+        settings.Weather.ShowRainfall = true;
+        var weather = new FakeWeatherService { Rainfall = value };
+
+        var vm = MakeVm(settings: settings, weather: weather);
+
+        Assert.NotNull(vm.RainfallText);
+        Assert.Contains("rainfall-" + expectedBucketStem, vm.RainfallText);
+    }
+
     [Fact]
     public void Wind_hidden_returns_null_regardless_of_speed()
     {
@@ -356,11 +557,12 @@ public class MainHudViewModelTests
         var rift = new FakeRiftService();
         var room = new FakeRoomService();
         var claim = new FakeClaimService();
+        var stats = new FakePlayerStatsService();
         var formatter = new StubTimeFormatter();
 
         Assert.Throws<System.ArgumentNullException>(() =>
             new MainHudViewModel(
-                null!, formatter, calendar, weather, rift, room, claim,
+                null!, formatter, calendar, weather, rift, room, claim, stats,
                 Identity, IdentityFormat,
                 () => new BlockPos(0, 0, 0),
                 () => 0,

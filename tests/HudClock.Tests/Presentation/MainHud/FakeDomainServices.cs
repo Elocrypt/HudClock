@@ -1,5 +1,6 @@
 using HudClock.Domain.Calendar;
 using HudClock.Domain.Claims;
+using HudClock.Domain.Player;
 using HudClock.Domain.Rifts;
 using HudClock.Domain.Rooms;
 using HudClock.Domain.Time;
@@ -24,8 +25,10 @@ internal sealed class FakeWeatherService : IWeatherService
 {
     public double WindSpeed { get; set; }
     public float TemperatureCelsius { get; set; }
+    public float Rainfall { get; set; }
     public double GetWindSpeed(BlockPos pos) => WindSpeed;
     public float GetTemperatureCelsius(BlockPos pos) => TemperatureCelsius;
+    public float GetRainfall(BlockPos pos) => Rainfall;
 }
 
 internal sealed class FakeRiftService : IRiftService
@@ -45,6 +48,12 @@ internal sealed class FakeClaimService : IClaimService
 {
     public ClaimInfo? Result { get; set; }
     public ClaimInfo? GetClaimAt(BlockPos pos) => Result;
+}
+
+internal sealed class FakePlayerStatsService : IPlayerStatsService
+{
+    public float? BodyTemperatureCelsius { get; set; }
+    public float? Intoxication { get; set; }
 }
 
 internal sealed class StubTimeFormatter : ITimeFormatter

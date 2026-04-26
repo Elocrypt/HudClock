@@ -3,6 +3,7 @@ using HudClock.Configuration;
 using HudClock.Core;
 using HudClock.Domain.Calendar;
 using HudClock.Domain.Claims;
+using HudClock.Domain.Player;
 using HudClock.Domain.Rifts;
 using HudClock.Domain.Rooms;
 using HudClock.Domain.Storms;
@@ -42,6 +43,7 @@ public sealed class HudClockModSystem : ModSystem
     private IRiftService? _rift;
     private IRoomService? _room;
     private IClaimService? _claim;
+    private IPlayerStatsService? _playerStats;
 
     // Presentation controllers.
     private MainHudController? _mainHud;
@@ -88,10 +90,11 @@ public sealed class HudClockModSystem : ModSystem
         _rift = new RiftService(api, log);
         _room = new RoomService(api, log);
         _claim = new ClaimService(api);
+        _playerStats = new PlayerStatsService(api, log);
 
         _mainHud = new MainHudController(
             api, settings, formatter,
-            _calendar, _weather, _rift, _room, _claim,
+            _calendar, _weather, _rift, _room, _claim, _playerStats,
             iconCache, keybinds, log);
 
         // Storm takes a reference to the main controller so it can subscribe to
@@ -152,6 +155,7 @@ public sealed class HudClockModSystem : ModSystem
         _storm = null;
         _rift = null;
         _claim = null;
+        _playerStats = null;
 
         _iconCache?.Dispose();
     }

@@ -156,12 +156,25 @@ internal sealed class SettingsDialogView : GuiDialog
                 _settings.Weather.ShowTemperature, v => _settings.Weather.ShowTemperature = v);
             yy = AddSwitch(c, yy, LangKeys.Settings.Fahrenheit, "fahrenheit",
                 _settings.Weather.Fahrenheit, v => _settings.Weather.Fahrenheit = v);
+            yy = AddSwitch(c, yy, LangKeys.Settings.ShowRainfall, "rainfall",
+                _settings.Weather.ShowRainfall, v => _settings.Weather.ShowRainfall = v);
             yy = AddDropDown(c, yy, LangKeys.Settings.Wind,
                 Enum.GetNames(typeof(WindDisplay)),
                 WindLocales(),
                 (int)_settings.Weather.Wind,
                 "wind",
                 (code, sel) => _settings.Weather.Wind = ParseEnum<WindDisplay>(code));
+            return yy;
+        });
+
+        y = AddSection(composer, y, LangKeys.Settings.SectionPlayerStats, (c, yy) =>
+        {
+            yy = AddSwitch(c, yy, LangKeys.Settings.ShowBodyTemperature, "body-temp",
+                _settings.PlayerStats.ShowBodyTemperature,
+                v => _settings.PlayerStats.ShowBodyTemperature = v);
+            yy = AddSwitch(c, yy, LangKeys.Settings.ShowIntoxication, "intox",
+                _settings.PlayerStats.ShowIntoxication,
+                v => _settings.PlayerStats.ShowIntoxication = v);
             return yy;
         });
 

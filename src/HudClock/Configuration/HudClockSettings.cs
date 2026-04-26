@@ -18,6 +18,7 @@ internal sealed class HudClockSettings
     public AppearanceOptions Appearance { get; set; } = new();
     public TimeOptions Time { get; set; } = new();
     public WeatherOptions Weather { get; set; } = new();
+    public PlayerStatsOptions PlayerStats { get; set; } = new();
     public StormOptions Storm { get; set; } = new();
     public RiftOptions Rift { get; set; } = new();
     public ClaimOptions Claim { get; set; } = new();

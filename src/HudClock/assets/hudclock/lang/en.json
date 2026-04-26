@@ -85,5 +85,19 @@
   "hudclock:settings-section-appearance": "Appearance",
   "hudclock:settings-icon-theme": "Icon theme",
   "hudclock:settings-icon-theme-modern": "Modern",
-  "hudclock:settings-icon-theme-classic": "Classic"
+  "hudclock:settings-icon-theme-classic": "Classic",
+  "hudclock:body-temperature-prefix": "Body: {0} ({1} {2})",
+  "hudclock:intoxication": "Intoxication: {0}%",
+  "hudclock:settings-section-player-stats": "Player stats",
+  "hudclock:settings-show-body-temperature": "Show body temperature",
+  "hudclock:settings-show-intoxication": "Show intoxication",
+  "hudclock:rainfall-prefix": "Rainfall: {0}",
+  "hudclock:rainfall-rare": "Rare",
+  "hudclock:rainfall-light": "Light",
+  "hudclock:rainfall-moderate": "Moderate",
+  "hudclock:rainfall-high": "High",
+  "hudclock:rainfall-veryhigh": "Very high",
+  "hudclock:settings-show-rainfall": "Show rainfall",
+  "hudclock:body-temperature-state-cool": "cool",
+  "hudclock:body-temperature-state-freezing": "FREEZING"
 }

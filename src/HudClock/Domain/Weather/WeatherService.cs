@@ -44,4 +44,11 @@ internal sealed class WeatherService : IWeatherService
         if (pos is null) throw new ArgumentNullException(nameof(pos));
         return _api.World.BlockAccessor.GetClimateAt(pos).Temperature;
     }
+
+    /// <inheritdoc />
+    public float GetRainfall(BlockPos pos)
+    {
+        if (pos is null) throw new ArgumentNullException(nameof(pos));
+        return _api.World.BlockAccessor.GetClimateAt(pos).Rainfall;
+    }
 }

@@ -20,4 +20,11 @@ internal sealed class WeatherOptions
     public bool ShowTemperature { get; set; } = true;
     public bool Fahrenheit { get; set; }
     public WindDisplay Wind { get; set; } = WindDisplay.BeaufortText;
+
+    /// <summary>
+    /// Show normalized rainfall at the player position, mapped to the same
+    /// labels the vanilla Environment dialog uses (Rare, Light, Moderate, etc.).
+    /// Off by default; players who don't farm rarely care about precipitation.
+    /// </summary>
+    public bool ShowRainfall { get; set; }
 }

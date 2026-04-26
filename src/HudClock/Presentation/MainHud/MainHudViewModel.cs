@@ -4,6 +4,7 @@ using System.Globalization;
 using HudClock.Configuration;
 using HudClock.Domain.Calendar;
 using HudClock.Domain.Claims;
+using HudClock.Domain.Player;
 using HudClock.Domain.Rifts;
 using HudClock.Domain.Rooms;
 using HudClock.Domain.Time;
@@ -53,6 +54,7 @@ internal sealed class MainHudViewModel
     private readonly IRiftService _rift;
     private readonly IRoomService _room;
     private readonly IClaimService _claim;
+    private readonly IPlayerStatsService _playerStats;
     private readonly Translator _translate;
     private readonly FormatTranslator _translateFormat;
     private readonly PlayerPositionProvider _playerPosition;
@@ -68,6 +70,9 @@ internal sealed class MainHudViewModel
     private RoomStatus _roomStatus = RoomStatus.None;
     private ClaimInfo? _claim_cache;
     private int _onlinePlayers;
+    private float? _bodyTemperatureCelsius;
+    private float? _intoxication;
+    private float _rainfall;
 
     // Snapshot of what was baked into the current layout's static icons.
     // Static custom-draws rasterize once per Compose, so the view has no way
@@ -85,6 +90,13 @@ internal sealed class MainHudViewModel
     // cache. Without this, toggling Modern/Classic in settings wouldn't
     // take effect until the next season or room transition.
     private IconTheme? _lastBakedTheme;
+    // Bitmask of MainHudLineKey values that were laid out by the last
+    // Rebuild. Some lines (intoxication) appear/disappear without any
+    // settings change — when that happens, the dynamic-text element doesn't
+    // exist in the composer yet, so a fast-path UpdateTexts has nothing to
+    // call SetNewText on. Detecting a set change here promotes the tick to
+    // a full Rebuild.
+    private long _lastBakedLineSetMask;
 
     public MainHudViewModel(
         HudClockSettings settings,
@@ -94,6 +106,7 @@ internal sealed class MainHudViewModel
         IRiftService rift,
         IRoomService room,
         IClaimService claim,
+        IPlayerStatsService playerStats,
         Translator translate,
         FormatTranslator translateFormat,
         PlayerPositionProvider playerPosition,
@@ -107,6 +120,7 @@ internal sealed class MainHudViewModel
         _rift = rift ?? throw new ArgumentNullException(nameof(rift));
         _room = room ?? throw new ArgumentNullException(nameof(room));
         _claim = claim ?? throw new ArgumentNullException(nameof(claim));
+        _playerStats = playerStats ?? throw new ArgumentNullException(nameof(playerStats));
         _translate = translate ?? throw new ArgumentNullException(nameof(translate));
         _translateFormat = translateFormat ?? throw new ArgumentNullException(nameof(translateFormat));
         _playerPosition = playerPosition ?? throw new ArgumentNullException(nameof(playerPosition));
@@ -134,26 +148,39 @@ internal sealed class MainHudViewModel
         _roomStatus = _room.CurrentStatus;
         _claim_cache = _settings.Claim.ShowClaimedArea ? _claim.GetClaimAt(pos) : null;
         _onlinePlayers = _isMultiplayer ? _onlinePlayerCount() : 0;
+
+        // Player-stat reads are gated by the same settings that decide line
+        // visibility. The service's one-shot "missing attribute" warning then
+        // only fires for users who actually asked to see the line — avoids
+        // noise for players who don't use these features.
+        _bodyTemperatureCelsius = _settings.PlayerStats.ShowBodyTemperature ? _playerStats.BodyTemperatureCelsius : null;
+        _intoxication = _settings.PlayerStats.ShowIntoxication ? _playerStats.Intoxication : null;
+        _rainfall = _settings.Weather.ShowRainfall ? _weather.GetRainfall(pos) : 0f;
     }
 
     /// <summary>
-    /// True when a visible icon (season icon, room-status icon) or the
-    /// active theme has changed since the last time the view baked a static
-    /// draw. The controller checks this after each <see cref="Tick"/> and
-    /// triggers a full view Rebuild when set, because VS's
-    /// <c>AddStaticCustomDraw</c> bakes the bitmap into the composer's
-    /// cached texture at Compose time and doesn't re-run the draw callback.
-    /// Text lines avoid this problem — they use <c>AddDynamicText</c> and
-    /// update via <c>SetNewText</c>.
+    /// True when something has changed since the last Rebuild that requires
+    /// a full re-compose rather than the fast text-only update path. Triggers:
+    /// season or room icon state, active icon theme, OR the set of currently
+    /// visible lines (e.g. an intox line appearing for the first time when
+    /// the player drinks).
     /// </summary>
+    /// <remarks>
+    /// VS's <c>AddStaticCustomDraw</c> bakes the bitmap into the composer's
+    /// cached texture at Compose time, so an icon swap needs a Rebuild.
+    /// Lines that didn't exist at the previous Compose time also need a
+    /// Rebuild — the dynamic-text element isn't in the composer yet, so
+    /// <c>UpdateTexts</c> would have nothing to update.
+    /// </remarks>
     public bool HasVisibleIconChanged =>
         _lastBakedSeason != _season
         || _lastBakedRoomStatus != _roomStatus
-        || _lastBakedTheme != _settings.Appearance.IconTheme;
+        || _lastBakedTheme != _settings.Appearance.IconTheme
+        || _lastBakedLineSetMask != ComputeVisibleLineSetMask();
 
     /// <summary>
-    /// Called by the view after each successful Rebuild to snapshot which
-    /// icon values were baked into the current composition. Resets
+    /// Called by the view after each successful Rebuild to snapshot the
+    /// state baked into the current composition. Resets
     /// <see cref="HasVisibleIconChanged"/> until the next change.
     /// </summary>
     public void MarkIconsBaked()
@@ -161,6 +188,26 @@ internal sealed class MainHudViewModel
         _lastBakedSeason = _season;
         _lastBakedRoomStatus = _roomStatus;
         _lastBakedTheme = _settings.Appearance.IconTheme;
+        _lastBakedLineSetMask = ComputeVisibleLineSetMask();
+    }
+
+    /// <summary>
+    /// Compact bitmask of currently-visible <see cref="MainHudLineKey"/>
+    /// values, used to detect set changes between ticks without allocating.
+    /// </summary>
+    private long ComputeVisibleLineSetMask()
+    {
+        long mask = 0;
+        if (IsSeasonAndTemperatureLineVisible) mask |= 1L << (int)MainHudLineKey.SeasonAndTemperature;
+        if (IsBodyTemperatureLineVisible)      mask |= 1L << (int)MainHudLineKey.BodyTemperature;
+        if (IsDateAndTimeLineVisible)          mask |= 1L << (int)MainHudLineKey.DateAndTime;
+        if (IsRealtimeLineVisible)             mask |= 1L << (int)MainHudLineKey.Realtime;
+        if (IsWindLineVisible)                 mask |= 1L << (int)MainHudLineKey.Wind;
+        if (IsRainfallLineVisible)             mask |= 1L << (int)MainHudLineKey.Rainfall;
+        if (IsIntoxicationLineVisible)         mask |= 1L << (int)MainHudLineKey.Intoxication;
+        if (IsRiftLineVisible)                 mask |= 1L << (int)MainHudLineKey.Rift;
+        if (IsOnlinePlayersLineVisible)        mask |= 1L << (int)MainHudLineKey.OnlinePlayers;
+        return mask;
     }
 
     // --- Visibility helpers used by the view to decide which lines to lay out. ---
@@ -168,12 +215,52 @@ internal sealed class MainHudViewModel
     public bool IsSeasonAndTemperatureLineVisible =>
         _settings.Weather.ShowSeason || _settings.Weather.ShowTemperature;
 
+    /// <summary>
+    /// Body-temperature line is visible only when the player is at or
+    /// below normal body temperature (37 °C raw). Comfortable / warm
+    /// states hide the line — the player doesn't need a number when
+    /// they're fine. Matches Status HUD Continued's body-heat behaviour.
+    /// </summary>
+    public bool IsBodyTemperatureLineVisible =>
+        _settings.PlayerStats.ShowBodyTemperature
+        && _bodyTemperatureCelsius.HasValue
+        && _bodyTemperatureCelsius.Value < BodyTempNormal;
+
+    /// <summary>True when body temperature has crossed the freezing-damage threshold.</summary>
+    /// <remarks>
+    /// Mirrors <c>EntityBehaviorBodyTemperature</c>: damage starts when
+    /// <c>NormalBodyTemperature - CurBodyTemperature > 4</c>, i.e. when
+    /// the raw value drops below 33 °C.
+    /// </remarks>
+    public bool IsFreezing =>
+        _bodyTemperatureCelsius.HasValue
+        && _bodyTemperatureCelsius.Value <= BodyTempFreezingThreshold;
+
+    // Vanilla survival constants from EntityBehaviorBodyTemperature.cs.
+    // Hard-coded rather than configurable: matching the source guarantees
+    // our threshold tracks the game's actual damage logic.
+    private const float BodyTempNormal = 37f;
+    private const float BodyTempFreezingThreshold = 33f;
+
     public bool IsDateAndTimeLineVisible =>
         _settings.Time.ShowDate || _settings.Time.ShowTime;
 
     public bool IsRealtimeLineVisible => _settings.Time.ShowRealtime;
 
     public bool IsWindLineVisible => _settings.Weather.Wind != WindDisplay.Hidden;
+
+    public bool IsRainfallLineVisible => _settings.Weather.ShowRainfall;
+
+    /// <summary>
+    /// Intoxication line is visible only when the setting is on <i>and</i> the
+    /// player is actually intoxicated. Hidden at zero matches Status HUD
+    /// Continued's UX — the line would otherwise show "0%" for most of a
+    /// playthrough.
+    /// </summary>
+    public bool IsIntoxicationLineVisible =>
+        _settings.PlayerStats.ShowIntoxication
+        && _intoxication.HasValue
+        && _intoxication.Value > 0f;
 
     public bool IsRiftLineVisible =>
         ShouldShowRift() && _riftCode is not null;
@@ -187,9 +274,12 @@ internal sealed class MainHudViewModel
     /// <summary>True when the HUD has no content to render at all.</summary>
     public bool IsEmpty =>
         !IsSeasonAndTemperatureLineVisible
+        && !IsBodyTemperatureLineVisible
         && !IsDateAndTimeLineVisible
         && !IsRealtimeLineVisible
         && !IsWindLineVisible
+        && !IsRainfallLineVisible
+        && !IsIntoxicationLineVisible
         && !IsRiftLineVisible
         && !IsOnlinePlayersLineVisible
         && !IsRoomIndicatorVisible;
@@ -206,11 +296,92 @@ internal sealed class MainHudViewModel
             if (!showSeason && !showTemp) return null;
 
             if (showSeason && showTemp)
-                return $"{SeasonName()}, {TemperatureString()}";
+                return $"{SeasonName()}, {TemperatureString(_temperatureCelsius)}";
             if (showSeason)
                 return SeasonName();
-            return TemperatureString();
+            return TemperatureString(_temperatureCelsius);
         }
+    }
+
+    /// <summary>
+    /// Formatted body-temperature line, or null when hidden. Shows a
+    /// comfort signal — "cool" or "freezing" — with the temperature
+    /// deviation from normal (37 °C raw) in the player's chosen unit.
+    /// The HUD never shows an absolute body temperature: the raw
+    /// watched-attribute value differs from the character GUI by design,
+    /// and re-deriving the GUI's display value would require duplicating
+    /// the survival mod's full clothing/wetness/climate computation.
+    /// </summary>
+    public string? BodyTemperatureText
+    {
+        get
+        {
+            if (!IsBodyTemperatureLineVisible) return null;
+
+            // Deviation is always negative or zero when the line is
+            // visible (visibility check excludes raw >= 37). Display as
+            // a signed temperature delta so "-2.4 °C" reads as "two and
+            // a bit degrees colder than normal".
+            float deviation = _bodyTemperatureCelsius!.Value - BodyTempNormal;
+
+            // For Fahrenheit users, convert the *delta* — not via the
+            // C->F formula (which would add 32) but as a pure scale
+            // factor. A delta of 1 °C is a delta of 1.8 °F.
+            float displayDelta = _settings.Weather.Fahrenheit ? deviation * 9f / 5f : deviation;
+            string deltaStr = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                "{0:+0.0;-0.0;0.0}", displayDelta);
+            string unit = _settings.Weather.Fahrenheit ? "°F" : "°C";
+
+            string stateLabel = _translate(IsFreezing
+                ? LangKeys.Hud.BodyTempStateFreezing
+                : LangKeys.Hud.BodyTempStateCool);
+
+            return _translateFormat(LangKeys.Hud.BodyTemperaturePrefix, stateLabel, deltaStr, unit);
+        }
+    }
+
+    /// <summary>
+    /// Formatted intoxication line (e.g. "Intoxication: 45%"), or null when
+    /// the player is sober or the line is disabled. The WatchedAttribute is
+    /// in [0, 1]; we render as whole-number percent.
+    /// </summary>
+    public string? IntoxicationText
+    {
+        get
+        {
+            if (!IsIntoxicationLineVisible) return null;
+            int percent = (int)System.Math.Round(_intoxication!.Value * 100f);
+            return _translateFormat(LangKeys.Hud.Intoxication, percent);
+        }
+    }
+
+    /// <summary>
+    /// Formatted rainfall line (e.g. "Rainfall: Moderate"), or null when
+    /// the line is disabled. Maps the normalized [0, 1] rainfall value to
+    /// the same discrete labels the vanilla Environment dialog uses.
+    /// </summary>
+    public string? RainfallText
+    {
+        get
+        {
+            if (!IsRainfallLineVisible) return null;
+            string label = _translate(LangKeys.Hud.RainfallStem + RainfallBucket(_rainfall));
+            return _translateFormat(LangKeys.Hud.RainfallPrefix, label);
+        }
+    }
+
+    /// <summary>
+    /// Map a normalized rainfall value to a vanilla-matching descriptor
+    /// suffix. Thresholds chosen to match the Environment dialog's "Rare /
+    /// Light / Moderate / High / Very high" buckets.
+    /// </summary>
+    private static string RainfallBucket(float r)
+    {
+        if (r < 0.10f) return "rare";
+        if (r < 0.30f) return "light";
+        if (r < 0.55f) return "moderate";
+        if (r < 0.80f) return "high";
+        return "veryhigh";
     }
 
     /// <summary>Formatted date and/or time line, or null when hidden.</summary>
@@ -336,9 +507,12 @@ internal sealed class MainHudViewModel
     public IEnumerable<MainHudLineKey> VisibleLineKeys()
     {
         if (IsSeasonAndTemperatureLineVisible) yield return MainHudLineKey.SeasonAndTemperature;
+        if (IsBodyTemperatureLineVisible)      yield return MainHudLineKey.BodyTemperature;
         if (IsDateAndTimeLineVisible)          yield return MainHudLineKey.DateAndTime;
         if (IsRealtimeLineVisible)             yield return MainHudLineKey.Realtime;
         if (IsWindLineVisible)                 yield return MainHudLineKey.Wind;
+        if (IsRainfallLineVisible)             yield return MainHudLineKey.Rainfall;
+        if (IsIntoxicationLineVisible)         yield return MainHudLineKey.Intoxication;
         if (IsRiftLineVisible)                 yield return MainHudLineKey.Rift;
         if (IsOnlinePlayersLineVisible)        yield return MainHudLineKey.OnlinePlayers;
     }
@@ -347,9 +521,12 @@ internal sealed class MainHudViewModel
     public string? GetLineText(MainHudLineKey key) => key switch
     {
         MainHudLineKey.SeasonAndTemperature => SeasonAndTemperatureText,
+        MainHudLineKey.BodyTemperature      => BodyTemperatureText,
         MainHudLineKey.DateAndTime          => DateAndTimeText,
         MainHudLineKey.Realtime             => RealtimeText,
         MainHudLineKey.Wind                 => WindText,
+        MainHudLineKey.Rainfall             => RainfallText,
+        MainHudLineKey.Intoxication         => IntoxicationText,
         MainHudLineKey.Rift                 => RiftText,
         MainHudLineKey.OnlinePlayers        => OnlinePlayersText,
         _ => null,
@@ -366,11 +543,16 @@ internal sealed class MainHudViewModel
         _ => string.Empty,
     };
 
-    private string TemperatureString()
+    /// <summary>
+    /// Format a Celsius value as a temperature string respecting the user's
+    /// Fahrenheit preference. Shared by world-temperature and body-temperature
+    /// lines so they always use the same unit.
+    /// </summary>
+    private string TemperatureString(float celsius)
     {
         float display = _settings.Weather.Fahrenheit
-            ? _temperatureCelsius * 9f / 5f + 32f
-            : _temperatureCelsius;
+            ? celsius * 9f / 5f + 32f
+            : celsius;
         string formatted = string.Format(CultureInfo.InvariantCulture, "{0:0.0}", display);
         return _translateFormat(
             _settings.Weather.Fahrenheit ? LangKeys.Hud.TemperatureFahrenheit : LangKeys.Hud.TemperatureCelsius,
