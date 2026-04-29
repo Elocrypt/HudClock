@@ -92,6 +92,7 @@
   "hudclock:settings-section-player-stats": "Player stats",
   "hudclock:settings-show-body-temperature": "Show body temperature",
   "hudclock:settings-show-intoxication": "Show intoxication",
+  "hudclock:settings-show-apparent-temperature": "Show apparent temperature",
   "hudclock:rainfall-prefix": "Rainfall: {0}",
   "hudclock:rainfall-rare": "Rare",
   "hudclock:rainfall-light": "Light",
@@ -100,5 +101,14 @@
   "hudclock:rainfall-veryhigh": "Very high",
   "hudclock:settings-show-rainfall": "Show rainfall",
   "hudclock:body-temperature-state-cool": "cool",
-  "hudclock:body-temperature-state-freezing": "FREEZING"
+  "hudclock:body-temperature-state-freezing": "FREEZING",
+  "hudclock:body-temperature-state-warm": "warm",
+  "hudclock:body-temperature-state-hot": "HOT",
+  "hudclock:apparent-temperature-prefix": "Apparent: {0} ({1})",
+  "hudclock:apparent-temperature-prefix-uncategorized": "Apparent: {0}",
+  "hudclock:apparent-temperature-state-comfy": "Comfy",
+  "hudclock:apparent-temperature-state-cold": "Cold",
+  "hudclock:apparent-temperature-state-freezing": "Freezing",
+  "hudclock:apparent-temperature-state-warm": "Warm",
+  "hudclock:apparent-temperature-state-hot": "Hot"
 }

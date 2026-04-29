@@ -175,6 +175,14 @@ internal sealed class SettingsDialogView : GuiDialog
             yy = AddSwitch(c, yy, LangKeys.Settings.ShowIntoxication, "intox",
                 _settings.PlayerStats.ShowIntoxication,
                 v => _settings.PlayerStats.ShowIntoxication = v);
+            // Apparent ("feels like") temperature line. Silently no-ops
+            // unless an immersive-temperature mod is publishing the
+            // bodyTemp.apparentTempC watched attribute (see
+            // docs/integration.md). The setting itself is always shown so
+            // users with the mod installed can find it.
+            yy = AddSwitch(c, yy, LangKeys.Settings.ShowApparentTemperature, "apparent-temp",
+                _settings.PlayerStats.ShowApparentTemperature,
+                v => _settings.PlayerStats.ShowApparentTemperature = v);
             return yy;
         });
 

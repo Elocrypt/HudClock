@@ -54,6 +54,14 @@ internal sealed class FakePlayerStatsService : IPlayerStatsService
 {
     public float? BodyTemperatureCelsius { get; set; }
     public float? Intoxication { get; set; }
+
+    /// <summary>
+    /// Setting this to a non-null value flips the viewmodel into "immersive
+    /// temperature active" mode (warm half of body-temp line shown, apparent-
+    /// temp line eligible). Mirrors the contract in <c>docs/integration.md</c>.
+    /// </summary>
+    public string? ApparentTemperatureCategory { get; set; }
+    public float? ApparentTemperatureCelsius { get; set; }
 }
 
 internal sealed class StubTimeFormatter : ITimeFormatter

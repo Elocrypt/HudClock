@@ -92,6 +92,7 @@
   "hudclock:settings-section-player-stats": "Estadísticas del jugador",
   "hudclock:settings-show-body-temperature": "Mostrar temperatura corporal",
   "hudclock:settings-show-intoxication": "Mostrar embriaguez",
+  "hudclock:settings-show-apparent-temperature": "Mostrar temperatura aparente",
   "hudclock:rainfall-prefix": "Precipitaciones: {0}",
   "hudclock:rainfall-rare": "Raras",
   "hudclock:rainfall-light": "Ligeras",
@@ -100,5 +101,14 @@
   "hudclock:rainfall-veryhigh": "Muy fuertes",
   "hudclock:settings-show-rainfall": "Mostrar precipitaciones",
   "hudclock:body-temperature-state-cool": "fresco",
-  "hudclock:body-temperature-state-freezing": "CONGELACIÓN"
+  "hudclock:body-temperature-state-freezing": "CONGELACIÓN",
+  "hudclock:body-temperature-state-warm": "cálido",
+  "hudclock:body-temperature-state-hot": "CALIENTE",
+  "hudclock:apparent-temperature-prefix": "Aparente: {0} ({1})",
+  "hudclock:apparent-temperature-prefix-uncategorized": "Aparente: {0}",
+  "hudclock:apparent-temperature-state-comfy": "Cómodo",
+  "hudclock:apparent-temperature-state-cold": "Frío",
+  "hudclock:apparent-temperature-state-freezing": "Gélido",
+  "hudclock:apparent-temperature-state-warm": "Cálido",
+  "hudclock:apparent-temperature-state-hot": "Caliente"
 }

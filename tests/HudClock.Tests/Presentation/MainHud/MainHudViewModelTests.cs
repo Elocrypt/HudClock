@@ -343,6 +343,240 @@ public class MainHudViewModelTests
         Assert.Contains("°F", vm.BodyTemperatureText);
     }
 
+    // --- Body temperature: immersive-temperature mod active (warm half) ---
+
+    [Theory]
+    [InlineData(45.0f)]  // raw max
+    [InlineData(41.0f)]  // vanilla spawn default
+    [InlineData(38.0f)]  // arbitrary above-normal
+    public void Body_temperature_hidden_when_warm_without_immersive_mod(float raw)
+    {
+        // Without an immersive-temperature mod the apparentTemp string is
+        // absent. Vanilla rests body temp at normal+4 (=41); we must keep
+        // hiding the line above normal so vanilla players don't see a
+        // permanent "warm (+4.0 °C)" line.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService
+        {
+            BodyTemperatureCelsius = raw,
+            ApparentTemperatureCategory = null,  // mod inactive
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.False(vm.IsImmersiveTemperatureActive);
+        Assert.False(vm.IsBodyTemperatureLineVisible);
+        Assert.Null(vm.BodyTemperatureText);
+    }
+
+    [Fact]
+    public void Body_temperature_warm_state_shown_with_immersive_mod()
+    {
+        // With the mod the resting body temp is at normal (37) and warm
+        // means actually warm. 38.5 = +1.5 from normal.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService
+        {
+            BodyTemperatureCelsius = 38.5f,
+            ApparentTemperatureCategory = "Warm",
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.True(vm.IsImmersiveTemperatureActive);
+        Assert.True(vm.IsBodyTemperatureLineVisible);
+        Assert.NotNull(vm.BodyTemperatureText);
+        Assert.Contains("state-warm", vm.BodyTemperatureText);
+        Assert.Contains("+1.5", vm.BodyTemperatureText);
+        Assert.False(vm.IsHot);
+    }
+
+    [Fact]
+    public void Body_temperature_at_heatstroke_threshold_marks_hot()
+    {
+        // 41.0 mirrors 33.0 on the cold side — damage threshold.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService
+        {
+            BodyTemperatureCelsius = 41.0f,
+            ApparentTemperatureCategory = "Hot",
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.True(vm.IsHot);
+        Assert.NotNull(vm.BodyTemperatureText);
+        Assert.Contains("state-hot", vm.BodyTemperatureText);
+        Assert.Contains("+4.0", vm.BodyTemperatureText);
+    }
+
+    [Fact]
+    public void Body_temperature_well_above_heatstroke_still_marks_hot()
+    {
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService
+        {
+            BodyTemperatureCelsius = 43.0f,
+            ApparentTemperatureCategory = "Hot",
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.True(vm.IsHot);
+        Assert.Contains("state-hot", vm.BodyTemperatureText);
+        Assert.Contains("+6.0", vm.BodyTemperatureText);
+    }
+
+    [Fact]
+    public void Body_temperature_below_normal_with_immersive_still_uses_cool_state()
+    {
+        // Immersive mod active doesn't change the cold-side semantics —
+        // cool/FREEZING below normal still rendered as before.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService
+        {
+            BodyTemperatureCelsius = 34.6f,
+            ApparentTemperatureCategory = "Cold",
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Contains("state-cool", vm.BodyTemperatureText);
+        Assert.Contains("-2.4", vm.BodyTemperatureText);
+        Assert.False(vm.IsHot);
+    }
+
+    // --- Apparent temperature ---
+
+    [Fact]
+    public void Apparent_temperature_hidden_when_setting_off()
+    {
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowApparentTemperature = false;
+        var stats = new FakePlayerStatsService
+        {
+            ApparentTemperatureCelsius = 32.5f,
+            ApparentTemperatureCategory = "Hot",
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.False(vm.IsApparentTemperatureLineVisible);
+        Assert.Null(vm.ApparentTemperatureText);
+    }
+
+    [Fact]
+    public void Apparent_temperature_hidden_when_attribute_missing()
+    {
+        // Setting on but no immersive mod is providing the value — silently
+        // hide rather than surfacing a permanently empty line.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowApparentTemperature = true;
+        var stats = new FakePlayerStatsService
+        {
+            ApparentTemperatureCelsius = null,
+            ApparentTemperatureCategory = null,
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.False(vm.IsApparentTemperatureLineVisible);
+        Assert.Null(vm.ApparentTemperatureText);
+    }
+
+    [Fact]
+    public void Apparent_temperature_renders_with_celsius_value_and_category()
+    {
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowApparentTemperature = true;
+        settings.Weather.Fahrenheit = false;
+        var stats = new FakePlayerStatsService
+        {
+            ApparentTemperatureCelsius = 32.5f,
+            ApparentTemperatureCategory = "Hot",
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.True(vm.IsApparentTemperatureLineVisible);
+        Assert.NotNull(vm.ApparentTemperatureText);
+        Assert.Contains("32.5", vm.ApparentTemperatureText);
+        Assert.Contains("celsius", vm.ApparentTemperatureText);
+        // Category lang key is hudclock:apparent-temperature-state-hot;
+        // identity translator returns the key, so "state-hot" must appear.
+        Assert.Contains("state-hot", vm.ApparentTemperatureText);
+    }
+
+    [Fact]
+    public void Apparent_temperature_renders_uncategorized_when_category_absent()
+    {
+        // Mods may publish only the float and not the categorical bucket.
+        // In that case render the numeric line without a "(Hot)" suffix.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowApparentTemperature = true;
+        var stats = new FakePlayerStatsService
+        {
+            ApparentTemperatureCelsius = 22.0f,
+            ApparentTemperatureCategory = null,
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.True(vm.IsApparentTemperatureLineVisible);
+        Assert.Contains("22.0", vm.ApparentTemperatureText);
+        Assert.Contains("uncategorized", vm.ApparentTemperatureText);
+        Assert.DoesNotContain("state-", vm.ApparentTemperatureText);
+    }
+
+    [Fact]
+    public void Apparent_temperature_converts_to_fahrenheit()
+    {
+        // 32.5 °C = 90.5 °F. Same conversion as world temp.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowApparentTemperature = true;
+        settings.Weather.Fahrenheit = true;
+        var stats = new FakePlayerStatsService
+        {
+            ApparentTemperatureCelsius = 32.5f,
+            ApparentTemperatureCategory = "Hot",
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.Contains("90.5", vm.ApparentTemperatureText);
+        Assert.Contains("fahrenheit", vm.ApparentTemperatureText);
+    }
+
+    [Fact]
+    public void Apparent_temperature_line_appearing_flips_visible_set_mask()
+    {
+        // Regression guard for the same class of bug as 4.2.0's intoxication
+        // line: when an immersive mod publishes apparentTempC for the first
+        // time mid-game, HasVisibleIconChanged must report true so the
+        // controller triggers a Rebuild. Without that, the dynamic-text
+        // element doesn't exist in the composer and SetNewText silently
+        // does nothing.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowApparentTemperature = true;
+        var stats = new FakePlayerStatsService();  // no values yet
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+        vm.MarkIconsBaked();  // simulate a Rebuild that captured the empty state
+        Assert.False(vm.HasVisibleIconChanged);
+
+        // Mod becomes active mid-game — value appears.
+        stats.ApparentTemperatureCelsius = 25.0f;
+        stats.ApparentTemperatureCategory = "Comfy";
+        vm.Tick();
+
+        Assert.True(vm.HasVisibleIconChanged);
+    }
+
     // --- Intoxication ---
 
     [Fact]

@@ -147,6 +147,14 @@ public class HudClockSettingsDefaultsTests
     }
 
     [Fact]
+    public void PlayerStats_apparent_temperature_defaults_off()
+    {
+        // No-op without a compatible immersive-temperature mod, so opt-in
+        // matches the existing PlayerStats convention.
+        Assert.False(_defaults.PlayerStats.ShowApparentTemperature);
+    }
+
+    [Fact]
     public void Weather_rainfall_defaults_off()
     {
         // Off by default — rainfall is opt-in like the player-stats lines.
