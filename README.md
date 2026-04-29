@@ -106,10 +106,11 @@ Editing the JSON directly while the game is running works but a settings-dialog 
 - **Vintage Story 1.22.0** or later. Earlier versions aren't supported — the [3.x and below lines](https://mods.vintagestory.at/hudclock#tab-files) runs on 1.21 and below.
 - Client-side only. Safe to use on multiplayer servers the mod isn't installed on.
 - No known conflicts. The mod reads from (but never writes to) VS's temporal-storm and rift systems via reflection, which is why each VS version is pinned explicitly — an API shape change will gracefully degrade those two lines rather than crash the HUD.
+- **Mod integrations.** HUD Clock displays extended body-temperature and apparent ("feels like") temperature when another mod publishes them under a small set of well-known watched-attribute keys. Compatible out of the box with [Immersive Body Temperature](https://mods.vintagestory.at/immersivebodytemperature) by Cer0; the contract is documented in [`docs/integration.md`](docs/integration.md) so any temperature mod can opt in.
 
 ## Languages
 
-English, Spanish (Latin American), Spanish (Castilian), German, French, Italian, Japanese, Polish, Portuguese (Brazil), Portuguese (Portugal), Russian, Ukrainian. The game picks the right language automatically based on your client locale. Contributions welcome.
+English, Spanish (Latin American), Spanish (Castilian), German, Korean, French, Italian, Japanese, Polish, Portuguese (Brazil), Portuguese (Portugal), Russian, Ukrainian. The game picks the right language automatically based on your client locale. Contributions welcome.
 
 ---
 
