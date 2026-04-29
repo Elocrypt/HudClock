@@ -30,8 +30,8 @@ internal static class LangKeys
 
         /// <summary>
         /// Format: "Body: {0} ({1} {2})" where {0} is a localized state
-        /// label (cool/freezing), {1} is a signed delta from normal
-        /// (e.g. "-2.4"), and {2} is the unit (°C / °F).
+        /// label (cool/freezing/warm/hot), {1} is a signed delta from
+        /// normal (e.g. "-2.4"), and {2} is the unit (°C / °F).
         /// </summary>
         public const string BodyTemperaturePrefix = "hudclock:body-temperature-prefix";
 
@@ -40,6 +40,43 @@ internal static class LangKeys
 
         /// <summary>State label: at or below freezing-damage threshold.</summary>
         public const string BodyTempStateFreezing = "hudclock:body-temperature-state-freezing";
+
+        /// <summary>
+        /// State label: above normal but not yet taking heatstroke damage.
+        /// Only reachable when an immersive-temperature mod is active —
+        /// vanilla rests body temp at <c>normal + 4</c> which we hide.
+        /// </summary>
+        public const string BodyTempStateWarm = "hudclock:body-temperature-state-warm";
+
+        /// <summary>
+        /// State label: at or above the heatstroke-damage threshold
+        /// (<c>normal + 4</c>). Mirrors <see cref="BodyTempStateFreezing"/>.
+        /// Only reachable with an immersive-temperature mod.
+        /// </summary>
+        public const string BodyTempStateHot = "hudclock:body-temperature-state-hot";
+
+        /// <summary>
+        /// Format: "Apparent: {0} ({1})" where {0} is a temperature string
+        /// (already unit-formatted) and {1} is a localized "feels like"
+        /// state label. Used for the apparent-temperature line provided
+        /// by an immersive-temperature mod.
+        /// </summary>
+        public const string ApparentTemperaturePrefix = "hudclock:apparent-temperature-prefix";
+
+        /// <summary>
+        /// Format: "Apparent: {0}" — used when the mod publishes a numeric
+        /// apparent temperature but no categorical state. Falls back to the
+        /// suffixed prefix when both are present.
+        /// </summary>
+        public const string ApparentTemperaturePrefixUncategorized = "hudclock:apparent-temperature-prefix-uncategorized";
+
+        /// <summary>
+        /// Stem for apparent-temperature category labels. The suffix is the
+        /// lowercased category string supplied by the integrating mod —
+        /// canonical values are <c>comfy</c>, <c>cold</c>, <c>freezing</c>,
+        /// <c>warm</c>, <c>hot</c>.
+        /// </summary>
+        public const string ApparentTempStateStem = "hudclock:apparent-temperature-state-";
 
         /// <summary>Format: "Intoxication: {0}%" — {0} is an integer 1..100.</summary>
         public const string Intoxication = "hudclock:intoxication";
@@ -98,18 +135,19 @@ internal static class LangKeys
         public const string SectionMultiplayer = "hudclock:settings-section-multiplayer";
 
         // Switch labels.
-        public const string ShowSeason           = "hudclock:settings-show-season";
-        public const string ShowTemperature      = "hudclock:settings-show-temperature";
-        public const string Fahrenheit           = "hudclock:settings-fahrenheit";
-        public const string ShowRainfall         = "hudclock:settings-show-rainfall";
-        public const string ShowDate             = "hudclock:settings-show-date";
-        public const string ShowTime             = "hudclock:settings-show-time";
-        public const string ShowRealtime         = "hudclock:settings-show-realtime";
-        public const string ShowRoom             = "hudclock:settings-show-room";
-        public const string ShowBodyTemperature  = "hudclock:settings-show-body-temperature";
-        public const string ShowIntoxication     = "hudclock:settings-show-intoxication";
-        public const string ShowOnlinePlayers    = "hudclock:settings-show-online-players";
-        public const string ShowClaim            = "hudclock:settings-show-claim";
+        public const string ShowSeason             = "hudclock:settings-show-season";
+        public const string ShowTemperature        = "hudclock:settings-show-temperature";
+        public const string Fahrenheit             = "hudclock:settings-fahrenheit";
+        public const string ShowRainfall           = "hudclock:settings-show-rainfall";
+        public const string ShowDate               = "hudclock:settings-show-date";
+        public const string ShowTime               = "hudclock:settings-show-time";
+        public const string ShowRealtime           = "hudclock:settings-show-realtime";
+        public const string ShowRoom               = "hudclock:settings-show-room";
+        public const string ShowBodyTemperature    = "hudclock:settings-show-body-temperature";
+        public const string ShowIntoxication       = "hudclock:settings-show-intoxication";
+        public const string ShowApparentTemperature = "hudclock:settings-show-apparent-temperature";
+        public const string ShowOnlinePlayers      = "hudclock:settings-show-online-players";
+        public const string ShowClaim              = "hudclock:settings-show-claim";
 
         // Dropdown labels.
         public const string HudPosition = "hudclock:settings-hud-position";

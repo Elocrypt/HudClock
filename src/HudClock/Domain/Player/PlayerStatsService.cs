@@ -35,11 +35,21 @@ namespace HudClock.Domain.Player;
 /// Intoxication is a top-level <c>WatchedAttribute</c> float — confirmed
 /// in <c>Collectible.cs</c> and <c>BehaviorHunger.cs</c>.
 /// </para>
+/// <para>
+/// Apparent-temperature category and Celsius value follow the integration
+/// contract in <c>docs/integration.md</c>: keys <c>apparentTemp</c>
+/// (string) and <c>apparentTempC</c> (float) under the same
+/// <c>bodyTemp</c> tree. Both are written by Immersive Body Temperature
+/// (<c>warmweathereffects</c>); other temperature mods can opt in by
+/// writing the same keys.
+/// </para>
 /// </remarks>
 internal sealed class PlayerStatsService : IPlayerStatsService
 {
     private const string BodyTempTreeKey = "bodyTemp";
     private const string BodyTempValueKey = "bodytemp";
+    private const string ApparentTempCategoryKey = "apparentTemp";
+    private const string ApparentTempCelsiusKey = "apparentTempC";
     private const string IntoxicationKey = "intoxication";
 
     private readonly ICoreClientAPI _api;
@@ -102,6 +112,43 @@ internal sealed class PlayerStatsService : IPlayerStatsService
             }
 
             return watched.GetFloat(IntoxicationKey);
+        }
+    }
+
+    /// <inheritdoc />
+    public string? ApparentTemperatureCategory
+    {
+        get
+        {
+            // Re-fetch the tree on every call — same rationale as
+            // BodyTemperatureCelsius. No "missing attribute" warning here:
+            // absence is the normal state for users without an immersive-
+            // temperature mod installed and would be noise.
+            ITreeAttribute? bodyTemp = _api.World?.Player?.Entity?.WatchedAttributes?
+                .GetTreeAttribute(BodyTempTreeKey);
+            if (bodyTemp is null) return null;
+
+            // GetString returns null when the key is absent; that's exactly
+            // the "no immersive mod" signal we want to surface upward.
+            string? category = bodyTemp.GetString(ApparentTempCategoryKey);
+            return string.IsNullOrEmpty(category) ? null : category;
+        }
+    }
+
+    /// <inheritdoc />
+    public float? ApparentTemperatureCelsius
+    {
+        get
+        {
+            ITreeAttribute? bodyTemp = _api.World?.Player?.Entity?.WatchedAttributes?
+                .GetTreeAttribute(BodyTempTreeKey);
+            if (bodyTemp is null) return null;
+
+            // HasAttribute check before GetFloat: GetFloat returns 0 for a
+            // missing key, which would be indistinguishable from a real
+            // freezing-equivalent reading in Fahrenheit display.
+            if (!bodyTemp.HasAttribute(ApparentTempCelsiusKey)) return null;
+            return bodyTemp.GetFloat(ApparentTempCelsiusKey);
         }
     }
 }

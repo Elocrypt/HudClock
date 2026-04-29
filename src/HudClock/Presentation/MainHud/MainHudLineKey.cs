@@ -14,6 +14,7 @@ internal enum MainHudLineKey
 {
     SeasonAndTemperature,
     BodyTemperature,
+    ApparentTemperature,
     DateAndTime,
     Realtime,
     Wind,

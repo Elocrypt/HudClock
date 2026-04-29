@@ -73,6 +73,8 @@ internal sealed class MainHudViewModel
     private float? _bodyTemperatureCelsius;
     private float? _intoxication;
     private float _rainfall;
+    private string? _apparentTempCategory;
+    private float? _apparentTemperatureCelsius;
 
     // Snapshot of what was baked into the current layout's static icons.
     // Static custom-draws rasterize once per Compose, so the view has no way
@@ -91,11 +93,11 @@ internal sealed class MainHudViewModel
     // take effect until the next season or room transition.
     private IconTheme? _lastBakedTheme;
     // Bitmask of MainHudLineKey values that were laid out by the last
-    // Rebuild. Some lines (intoxication) appear/disappear without any
-    // settings change — when that happens, the dynamic-text element doesn't
-    // exist in the composer yet, so a fast-path UpdateTexts has nothing to
-    // call SetNewText on. Detecting a set change here promotes the tick to
-    // a full Rebuild.
+    // Rebuild. Some lines (intoxication, apparent temperature) appear/
+    // disappear without any settings change — when that happens, the
+    // dynamic-text element doesn't exist in the composer yet, so a fast-
+    // path UpdateTexts has nothing to call SetNewText on. Detecting a set
+    // change here promotes the tick to a full Rebuild.
     private long _lastBakedLineSetMask;
 
     public MainHudViewModel(
@@ -156,6 +158,20 @@ internal sealed class MainHudViewModel
         _bodyTemperatureCelsius = _settings.PlayerStats.ShowBodyTemperature ? _playerStats.BodyTemperatureCelsius : null;
         _intoxication = _settings.PlayerStats.ShowIntoxication ? _playerStats.Intoxication : null;
         _rainfall = _settings.Weather.ShowRainfall ? _weather.GetRainfall(pos) : 0f;
+
+        // The apparent-temperature category drives two things:
+        //   1. As the immersive-temperature detection signal — its presence
+        //      tells us bodyTemp.bodytemp is now bidirectional, so we can
+        //      safely show the warm half of the body-temp line.
+        //   2. As the "feels like" label on the apparent-temperature line.
+        // We need it whenever either of those consumers is enabled, not just
+        // when the apparent-temp line is on.
+        bool wantCategory = _settings.PlayerStats.ShowBodyTemperature
+                            || _settings.PlayerStats.ShowApparentTemperature;
+        _apparentTempCategory = wantCategory ? _playerStats.ApparentTemperatureCategory : null;
+        _apparentTemperatureCelsius = _settings.PlayerStats.ShowApparentTemperature
+            ? _playerStats.ApparentTemperatureCelsius
+            : null;
     }
 
     /// <summary>
@@ -200,6 +216,7 @@ internal sealed class MainHudViewModel
         long mask = 0;
         if (IsSeasonAndTemperatureLineVisible) mask |= 1L << (int)MainHudLineKey.SeasonAndTemperature;
         if (IsBodyTemperatureLineVisible)      mask |= 1L << (int)MainHudLineKey.BodyTemperature;
+        if (IsApparentTemperatureLineVisible)  mask |= 1L << (int)MainHudLineKey.ApparentTemperature;
         if (IsDateAndTimeLineVisible)          mask |= 1L << (int)MainHudLineKey.DateAndTime;
         if (IsRealtimeLineVisible)             mask |= 1L << (int)MainHudLineKey.Realtime;
         if (IsWindLineVisible)                 mask |= 1L << (int)MainHudLineKey.Wind;
@@ -216,15 +233,32 @@ internal sealed class MainHudViewModel
         _settings.Weather.ShowSeason || _settings.Weather.ShowTemperature;
 
     /// <summary>
-    /// Body-temperature line is visible only when the player is at or
-    /// below normal body temperature (37 °C raw). Comfortable / warm
-    /// states hide the line — the player doesn't need a number when
-    /// they're fine. Matches Status HUD Continued's body-heat behaviour.
+    /// True when an immersive-temperature mod is active, signalled by the
+    /// presence of <c>bodyTemp.apparentTemp</c> on the player. Determines
+    /// whether the body-temperature line extends symmetrically into the
+    /// warm half. Vanilla never sets this attribute, and vanilla rests body
+    /// temp at <c>normal + 4</c>, so without this gate every vanilla player
+    /// would suddenly see "warm (+4.0 °C)" on their HUD.
+    /// </summary>
+    /// <remarks>
+    /// Defined by the integration contract in <c>docs/integration.md</c>.
+    /// Any temperature mod that writes <c>bodyTemp.apparentTemp</c>
+    /// activates this branch — not just one specific mod.
+    /// </remarks>
+    public bool IsImmersiveTemperatureActive => _apparentTempCategory is not null;
+
+    /// <summary>
+    /// Body-temperature line is visible whenever the player is uncomfortably
+    /// cold (vanilla and immersive both) or — when an immersive-temperature
+    /// mod is active — uncomfortably warm. Comfortable / at-normal hides the
+    /// line: the player doesn't need a number when they're fine. Matches
+    /// Status HUD Continued's body-heat behaviour.
     /// </summary>
     public bool IsBodyTemperatureLineVisible =>
         _settings.PlayerStats.ShowBodyTemperature
         && _bodyTemperatureCelsius.HasValue
-        && _bodyTemperatureCelsius.Value < BodyTempNormal;
+        && (_bodyTemperatureCelsius.Value < BodyTempNormal
+            || (IsImmersiveTemperatureActive && _bodyTemperatureCelsius.Value > BodyTempNormal));
 
     /// <summary>True when body temperature has crossed the freezing-damage threshold.</summary>
     /// <remarks>
@@ -236,11 +270,25 @@ internal sealed class MainHudViewModel
         _bodyTemperatureCelsius.HasValue
         && _bodyTemperatureCelsius.Value <= BodyTempFreezingThreshold;
 
+    /// <summary>
+    /// True when body temperature has crossed the heatstroke-damage
+    /// threshold. Mirror of <see cref="IsFreezing"/> — damage starts when
+    /// <c>CurBodyTemperature - NormalBodyTemperature >= 4</c>, i.e. when
+    /// the raw value reaches 41 °C. Only meaningful when an immersive-
+    /// temperature mod is active; vanilla never reaches this threshold
+    /// in the warm direction.
+    /// </summary>
+    public bool IsHot =>
+        _bodyTemperatureCelsius.HasValue
+        && _bodyTemperatureCelsius.Value >= BodyTempHeatstrokeThreshold;
+
     // Vanilla survival constants from EntityBehaviorBodyTemperature.cs.
     // Hard-coded rather than configurable: matching the source guarantees
-    // our threshold tracks the game's actual damage logic.
+    // our threshold tracks the game's actual damage logic. The heatstroke
+    // threshold (NormalBodyTemperature + 4) mirrors the freezing one.
     private const float BodyTempNormal = 37f;
     private const float BodyTempFreezingThreshold = 33f;
+    private const float BodyTempHeatstrokeThreshold = 41f;
 
     public bool IsDateAndTimeLineVisible =>
         _settings.Time.ShowDate || _settings.Time.ShowTime;
@@ -262,6 +310,17 @@ internal sealed class MainHudViewModel
         && _intoxication.HasValue
         && _intoxication.Value > 0f;
 
+    /// <summary>
+    /// Apparent-temperature line is visible when the setting is on
+    /// <i>and</i> the underlying watched attribute is present. Without a
+    /// compatible immersive-temperature mod the attribute won't exist, and
+    /// the line silently stays hidden — turning the setting on has no
+    /// effect rather than surfacing a permanently empty line.
+    /// </summary>
+    public bool IsApparentTemperatureLineVisible =>
+        _settings.PlayerStats.ShowApparentTemperature
+        && _apparentTemperatureCelsius.HasValue;
+
     public bool IsRiftLineVisible =>
         ShouldShowRift() && _riftCode is not null;
 
@@ -275,6 +334,7 @@ internal sealed class MainHudViewModel
     public bool IsEmpty =>
         !IsSeasonAndTemperatureLineVisible
         && !IsBodyTemperatureLineVisible
+        && !IsApparentTemperatureLineVisible
         && !IsDateAndTimeLineVisible
         && !IsRealtimeLineVisible
         && !IsWindLineVisible
@@ -304,24 +364,25 @@ internal sealed class MainHudViewModel
     }
 
     /// <summary>
-    /// Formatted body-temperature line, or null when hidden. Shows a
-    /// comfort signal — "cool" or "freezing" — with the temperature
+    /// Formatted body-temperature line, or null when hidden. Shows a comfort
+    /// signal — cool / FREEZING below normal, or warm / HOT above normal
+    /// when an immersive-temperature mod is active — with the temperature
     /// deviation from normal (37 °C raw) in the player's chosen unit.
-    /// The HUD never shows an absolute body temperature: the raw
-    /// watched-attribute value differs from the character GUI by design,
-    /// and re-deriving the GUI's display value would require duplicating
-    /// the survival mod's full clothing/wetness/climate computation.
     /// </summary>
+    /// <remarks>
+    /// The HUD never shows an absolute body temperature: the raw watched-
+    /// attribute value differs from the character GUI by design, and re-
+    /// deriving the GUI's display value would require duplicating the
+    /// survival mod's full clothing/wetness/climate computation.
+    /// </remarks>
     public string? BodyTemperatureText
     {
         get
         {
             if (!IsBodyTemperatureLineVisible) return null;
 
-            // Deviation is always negative or zero when the line is
-            // visible (visibility check excludes raw >= 37). Display as
-            // a signed temperature delta so "-2.4 °C" reads as "two and
-            // a bit degrees colder than normal".
+            // Deviation can now be either sign. Below-normal: cool/FREEZING;
+            // above-normal (only reachable with an immersive mod): warm/HOT.
             float deviation = _bodyTemperatureCelsius!.Value - BodyTempNormal;
 
             // For Fahrenheit users, convert the *delta* — not via the
@@ -332,11 +393,59 @@ internal sealed class MainHudViewModel
                 "{0:+0.0;-0.0;0.0}", displayDelta);
             string unit = _settings.Weather.Fahrenheit ? "°F" : "°C";
 
-            string stateLabel = _translate(IsFreezing
-                ? LangKeys.Hud.BodyTempStateFreezing
-                : LangKeys.Hud.BodyTempStateCool);
+            string stateLabelKey;
+            if (deviation < 0)
+            {
+                // Below normal: existing cool / FREEZING semantics, unchanged.
+                stateLabelKey = IsFreezing
+                    ? LangKeys.Hud.BodyTempStateFreezing
+                    : LangKeys.Hud.BodyTempStateCool;
+            }
+            else
+            {
+                // Above normal: warm / HOT. Only reachable when
+                // IsImmersiveTemperatureActive — visibility predicate
+                // guarantees that.
+                stateLabelKey = IsHot
+                    ? LangKeys.Hud.BodyTempStateHot
+                    : LangKeys.Hud.BodyTempStateWarm;
+            }
+
+            string stateLabel = _translate(stateLabelKey);
 
             return _translateFormat(LangKeys.Hud.BodyTemperaturePrefix, stateLabel, deltaStr, unit);
+        }
+    }
+
+    /// <summary>
+    /// Formatted apparent-temperature line ("feels like"), or null when
+    /// hidden. Reads from the <c>bodyTemp.apparentTempC</c> watched
+    /// attribute populated by an immersive-temperature mod (see
+    /// <c>docs/integration.md</c>). Format is
+    /// <c>"Apparent: 32.5 °C (Hot)"</c> — temperature in the player's chosen
+    /// unit, with the categorical "feels like" label in parentheses when
+    /// available.
+    /// </summary>
+    public string? ApparentTemperatureText
+    {
+        get
+        {
+            if (!IsApparentTemperatureLineVisible) return null;
+
+            string tempString = TemperatureString(_apparentTemperatureCelsius!.Value);
+
+            // Category label is optional — when no mod is providing a
+            // category we still render the numeric line. Use the lowercased
+            // category as the lang-key suffix; canonical values in the
+            // contract are Comfy/Cold/Freezing/Warm/Hot, but any string is
+            // accepted (unrecognized keys fall back to the key text itself).
+            if (string.IsNullOrEmpty(_apparentTempCategory))
+                return _translateFormat(LangKeys.Hud.ApparentTemperaturePrefixUncategorized, tempString);
+
+            string categoryKey = LangKeys.Hud.ApparentTempStateStem +
+                                 _apparentTempCategory!.ToLowerInvariant();
+            string categoryLabel = _translate(categoryKey);
+            return _translateFormat(LangKeys.Hud.ApparentTemperaturePrefix, tempString, categoryLabel);
         }
     }
 
@@ -515,6 +624,7 @@ internal sealed class MainHudViewModel
     {
         if (IsSeasonAndTemperatureLineVisible) yield return MainHudLineKey.SeasonAndTemperature;
         if (IsBodyTemperatureLineVisible)      yield return MainHudLineKey.BodyTemperature;
+        if (IsApparentTemperatureLineVisible)  yield return MainHudLineKey.ApparentTemperature;
         if (IsDateAndTimeLineVisible)          yield return MainHudLineKey.DateAndTime;
         if (IsRealtimeLineVisible)             yield return MainHudLineKey.Realtime;
         if (IsWindLineVisible)                 yield return MainHudLineKey.Wind;
@@ -529,6 +639,7 @@ internal sealed class MainHudViewModel
     {
         MainHudLineKey.SeasonAndTemperature => SeasonAndTemperatureText,
         MainHudLineKey.BodyTemperature      => BodyTemperatureText,
+        MainHudLineKey.ApparentTemperature  => ApparentTemperatureText,
         MainHudLineKey.DateAndTime          => DateAndTimeText,
         MainHudLineKey.Realtime             => RealtimeText,
         MainHudLineKey.Wind                 => WindText,
@@ -552,8 +663,8 @@ internal sealed class MainHudViewModel
 
     /// <summary>
     /// Format a Celsius value as a temperature string respecting the user's
-    /// Fahrenheit preference. Shared by world-temperature and body-temperature
-    /// lines so they always use the same unit.
+    /// Fahrenheit preference. Shared by world-temperature, body-temperature,
+    /// and apparent-temperature lines so they always use the same unit.
     /// </summary>
     private string TemperatureString(float celsius)
     {

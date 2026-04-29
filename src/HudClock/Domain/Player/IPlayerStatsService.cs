@@ -28,4 +28,38 @@ internal interface IPlayerStatsService
     /// value is null <i>or</i> zero.
     /// </summary>
     float? Intoxication { get; }
+
+    /// <summary>
+    /// Categorical "feels like" label provided by an immersive-temperature
+    /// mod, read from <c>bodyTemp.apparentTemp</c> (string). Null when no
+    /// mod is providing it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Defined by the integration contract in <c>docs/integration.md</c>.
+    /// HUD Clock localizes the canonical values <c>Comfy</c>, <c>Cold</c>,
+    /// <c>Freezing</c>, <c>Warm</c>, and <c>Hot</c>; other strings render
+    /// verbatim.
+    /// </para>
+    /// <para>
+    /// <b>Presence of this property's value is HUD Clock's signal that the
+    /// bidirectional/immersive body-temperature system is active.</b> When
+    /// non-null the viewmodel extends body-temperature display symmetrically
+    /// to warm/HOT states above normal; when null it preserves the vanilla
+    /// behaviour of only showing cool/FREEZING below normal (vanilla rests
+    /// the body temp at normal + 4, which we hide).
+    /// </para>
+    /// </remarks>
+    string? ApparentTemperatureCategory { get; }
+
+    /// <summary>
+    /// Numeric apparent ("felt") temperature in Celsius — environment plus
+    /// wind/wetness/humidity/sun modifiers — read from
+    /// <c>bodyTemp.apparentTempC</c>. Null when no mod is providing it.
+    /// </summary>
+    /// <remarks>
+    /// Always supplied in Celsius regardless of the player's display
+    /// preference; the viewmodel converts to Fahrenheit if requested.
+    /// </remarks>
+    float? ApparentTemperatureCelsius { get; }
 }

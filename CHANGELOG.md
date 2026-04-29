@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Compatibility with [Immersive Body Temperature](https://mods.vintagestory.at/immersivebodytemperature) by Cer0** and any other temperature mod following the new vendor-neutral integration contract documented in [`docs/integration.md`](docs/integration.md). When such a mod is detected, HUD Clock extends the body-temperature line into the warm half of the range — `warm` above normal, `HOT` at or above the heatstroke-damage threshold (`normal + 4`, mirroring the existing freezing threshold). Vanilla behaviour is unchanged; the warm-half display is gated on the mod's signal so vanilla players don't suddenly see a permanent "warm (+4.0 °C)" line from the spawn-default body temperature.
+- **Apparent temperature line.** New optional HUD line showing the "feels like" temperature published by an immersive-temperature mod (environment + wind + wetness + humidity + sun). Off by default; silently hidden when no compatible mod is providing the value, so turning the setting on without the mod has no effect. Format: `Apparent: 32.5 °C (Hot)` — numeric value in the player's chosen unit (Celsius or Fahrenheit) with the categorical "feels like" label in parentheses when available. Toggle in the Player stats section of the settings dialog.
+- **Integration contract document** at [`docs/integration.md`](docs/integration.md). Defines the small set of well-known watched-attribute keys HUD Clock reads: `bodyTemp.bodytemp` (vanilla, extended), `bodyTemp.apparentTemp` (string enum, signals immersive system active), and `bodyTemp.apparentTempC` (float, °C, optional numeric apparent temperature). The contract is vendor-neutral — any temperature mod that writes these keys gets the integration without a code change on HUD Clock's side.
+- New lang keys `body-temperature-state-warm` / `body-temperature-state-hot`, `apparent-temperature-prefix`, `apparent-temperature-prefix-uncategorized`, and `apparent-temperature-state-{comfy,cold,freezing,warm,hot}`. English shipped; other locales (es-es, es-419, de, fr, it, ja, pl, pt-br, pt-pt, ru, uk) need translator updates.
+
 ## [4.2.2] - TBD
 
 ### Added
