@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Integration contract document** at [`docs/integration.md`](docs/integration.md). Defines the small set of well-known watched-attribute keys HUD Clock reads: `bodyTemp.bodytemp` (vanilla, extended), `bodyTemp.apparentTemp` (string enum, signals immersive system active), and `bodyTemp.apparentTempC` (float, °C, optional numeric apparent temperature). The contract is vendor-neutral — any temperature mod that writes these keys gets the integration without a code change on HUD Clock's side.
 - New lang keys `body-temperature-state-warm` / `body-temperature-state-hot`, `apparent-temperature-prefix`, `apparent-temperature-prefix-uncategorized`, and `apparent-temperature-state-{comfy,cold,freezing,warm,hot}`. English shipped; other locales (es-es, es-419, de, fr, it, ja, pl, pt-br, pt-pt, ru, uk) need translator updates.
 
+### Fixed
+
+- Body-temperature line no longer flickers as "warm (+0.2 °C)" when an immersive-temperature mod is active and the player is comfortable. The mod continuously recomputes body temp from environment and clothing inputs, producing small drift around the resting value; the HUD now applies a 0.5 °C deadband on the warm side before showing the line. Cold side is unchanged — vanilla rests body temp at `normal + 4` so any drop below 37 °C remains a meaningful warning.
+
 ## [4.2.2] - TBD
 
 ### Added
