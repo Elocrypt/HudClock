@@ -61,7 +61,7 @@ jobs:
           fi
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: build/dist/HudClock_${{ steps.version.outputs.VERSION }}.zip
           body_path: RELEASE_NOTES.md
