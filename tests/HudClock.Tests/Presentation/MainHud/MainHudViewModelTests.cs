@@ -394,6 +394,28 @@ public class MainHudViewModelTests
     }
 
     [Fact]
+    public void Body_temperature_just_above_normal_hidden_with_immersive_to_avoid_flicker()
+    {
+        // Cer0's calculator continuously recomputes body temp from environment
+        // and clothing every tick, producing ~0.1-0.3 °C drift around resting
+        // temperature even in comfortable conditions. Without a warm-side
+        // deadband, +0.2 °C would flicker the "warm" line on and off on every
+        // 2.5 s tick. 37.2 must therefore stay hidden.
+        var settings = new HudClockSettings();
+        settings.PlayerStats.ShowBodyTemperature = true;
+        var stats = new FakePlayerStatsService
+        {
+            BodyTemperatureCelsius = 37.2f,
+            ApparentTemperatureCategory = "Comfy",
+        };
+
+        var vm = MakeVm(settings: settings, playerStats: stats);
+
+        Assert.False(vm.IsBodyTemperatureLineVisible);
+        Assert.Null(vm.BodyTemperatureText);
+    }
+
+    [Fact]
     public void Body_temperature_at_heatstroke_threshold_marks_hot()
     {
         // 41.0 mirrors 33.0 on the cold side — damage threshold.

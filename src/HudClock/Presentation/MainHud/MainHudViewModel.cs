@@ -258,7 +258,8 @@ internal sealed class MainHudViewModel
         _settings.PlayerStats.ShowBodyTemperature
         && _bodyTemperatureCelsius.HasValue
         && (_bodyTemperatureCelsius.Value < BodyTempNormal
-            || (IsImmersiveTemperatureActive && _bodyTemperatureCelsius.Value > BodyTempNormal));
+            || (IsImmersiveTemperatureActive
+                && _bodyTemperatureCelsius.Value > BodyTempNormal + BodyTempWarmDeadbandCelsius));
 
     /// <summary>True when body temperature has crossed the freezing-damage threshold.</summary>
     /// <remarks>
@@ -289,6 +290,21 @@ internal sealed class MainHudViewModel
     private const float BodyTempNormal = 37f;
     private const float BodyTempFreezingThreshold = 33f;
     private const float BodyTempHeatstrokeThreshold = 41f;
+
+    /// <summary>
+    /// Required body-temperature excess above normal before the warm-half
+    /// line shows. The immersive-temperature system continuously recomputes
+    /// body temp from environment + clothing inputs and produces ~0.1–0.3 °C
+    /// drift around the resting temperature even in comfortable conditions;
+    /// without a deadband that drift would flicker "warm (+0.2 °C)" on and
+    /// off every tick. Asymmetric on purpose — the cold side has no
+    /// equivalent deadband because vanilla rests body temp at
+    /// <c>normal + 4</c>, so any drop below 37 is already a meaningful
+    /// warning rather than noise. A 0.5 °C threshold filters resting drift
+    /// while still triggering well below the +2 °C point where Immersive Body
+    /// Tempurature's heatstroke effects begin.
+    /// </summary>
+    private const float BodyTempWarmDeadbandCelsius = 0.5f;
 
     public bool IsDateAndTimeLineVisible =>
         _settings.Time.ShowDate || _settings.Time.ShowTime;

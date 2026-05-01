@@ -4,12 +4,12 @@
   "name": "HUD Clock",
   "authors": [ "Elocrypt" ],
   "description": "A client-side HUD displaying in-game time, weather, storms, rifts, rooms, and claims.",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "side": "Client",
   "requiredOnClient": true,
   "requiredOnServer": false,
   "dependencies": {
-    "game": "1.22.0"
+    "game": "1.22.1"
   },
   "website": "https://github.com/Elocrypt/HudClock"
 }
