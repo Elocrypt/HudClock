@@ -9,7 +9,7 @@
   "requiredOnClient": true,
   "requiredOnServer": false,
   "dependencies": {
-    "game": "1.22.1"
+    "game": "1.22.0"
   },
   "website": "https://github.com/Elocrypt/HudClock"
 }
