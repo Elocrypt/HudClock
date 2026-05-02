@@ -104,7 +104,7 @@
   "hudclock:body-temperature-state-freezing": "CONGELANDO",
   "hudclock:body-temperature-state-warm": "morno",
   "hudclock:body-temperature-state-hot": "QUENTE",
-  "hudclock:apparent-temperature-prefix": "Aparente: {0} ({1})"
+  "hudclock:apparent-temperature-prefix": "Aparente: {0} ({1})",
   "hudclock:apparent-temperature-prefix-uncategorized": "Aparente: {0}",
   "hudclock:apparent-temperature-state-comfy": "Confortável",
   "hudclock:apparent-temperature-state-cold": "Frio",

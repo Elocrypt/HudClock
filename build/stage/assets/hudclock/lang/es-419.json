@@ -110,5 +110,5 @@
   "hudclock:apparent-temperature-state-cold": "Frío",
   "hudclock:apparent-temperature-state-freezing": "Gélido",
   "hudclock:apparent-temperature-state-warm": "Cálido",
-  "hudclock:apparent-temperature-state-hot": "Caliente",
+  "hudclock:apparent-temperature-state-hot": "Caliente"
 }
