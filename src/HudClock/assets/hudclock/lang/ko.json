@@ -101,7 +101,7 @@
   "hudclock:rainfall-veryhigh": "매우 많음",
   "hudclock:settings-show-rainfall": "강수량 표시",
   "hudclock:body-temperature-state-cool": "추움",
-  "hudclock:body-temperature-state-freezing": "얼어붙음"
+  "hudclock:body-temperature-state-freezing": "얼어붙음",
   "hudclock:body-temperature-state-warm": "따뜻함",
   "hudclock:body-temperature-state-hot": "더움",
   "hudclock:apparent-temperature-prefix": "체감 온도: {0} ({1})",
