@@ -101,7 +101,7 @@
   "hudclock:rainfall-veryhigh": "Sehr stark",
   "hudclock:settings-show-rainfall": "Niederschlag anzeigen",
   "hudclock:body-temperature-state-cool": "kühl",
-  "hudclock:body-temperature-state-freezing": "FRIEREND"
+  "hudclock:body-temperature-state-freezing": "FRIEREND",
   "hudclock:body-temperature-state-warm": "warm",
   "hudclock:body-temperature-state-hot": "HEISS",
   "hudclock:apparent-temperature-prefix": "Gefühlt: {0} ({1})",
@@ -110,5 +110,5 @@
   "hudclock:apparent-temperature-state-cold": "Kalt",
   "hudclock:apparent-temperature-state-freezing": "Frostig",
   "hudclock:apparent-temperature-state-warm": "Warm",
-  "hudclock:apparent-temperature-state-hot": "Heiß",
+  "hudclock:apparent-temperature-state-hot": "Heiß"
 }
