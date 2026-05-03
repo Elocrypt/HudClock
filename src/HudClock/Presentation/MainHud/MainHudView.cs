@@ -214,6 +214,39 @@ internal sealed class MainHudView : HudElement
     public double CurrentLogicalOuterHeight =>
         (IsOpened() && _lastContentHeight > 0) ? _lastContentHeight + 2 * Padding : 0.0;
 
+    // ----------------------------------------------------------------
+    // HudShelf integration
+    // ----------------------------------------------------------------
+
+    /// <summary>
+    /// Reposition the composed dialog to a HudShelf-provided location.
+    /// Called after every <see cref="Rebuild"/> when HudShelf is
+    /// controlling position, and on each HudShelf position-changed
+    /// callback.
+    /// </summary>
+    /// <remarks>
+    /// Mutates the composer's root bounds in place rather than
+    /// recomposing. This is the same technique VS's own title-bar
+    /// drag uses — update alignment/offset fields and recalculate
+    /// world bounds. No texture allocations, no child re-layout.
+    /// <para/>
+    /// HudShelf delivers offsets in screen pixels; VS's
+    /// <c>fixedAlignmentOffset</c> expects logical ("fixed") pixels.
+    /// Dividing by <c>GuiElement.scaled(1)</c> converts between them.
+    /// </remarks>
+    public void RepositionFromShelf(EnumDialogArea area, double screenOffsetX, double screenOffsetY)
+    {
+        if (SingleComposer?.Bounds is null) return;
+
+        var guiScale = GuiElement.scaled(1.0);
+        if (guiScale <= 0) guiScale = 1.0;
+
+        SingleComposer.Bounds.Alignment = area;
+        SingleComposer.Bounds.fixedOffsetX = screenOffsetX / guiScale;
+        SingleComposer.Bounds.fixedOffsetY = screenOffsetY / guiScale;
+        SingleComposer.Bounds.CalcWorldBounds();
+    }
+
     // --- Draw callbacks ---
 
     private void DrawSeasonIcon(Context ctx, ImageSurface surface, ElementBounds bounds)

@@ -37,6 +37,12 @@ internal sealed class StormHudController : IDisposable
     private bool _disposed;
     private bool _manuallyHidden;
 
+    // ── HudShelf integration state ──────────────────────────────
+    private bool _shelfActive;
+    private EnumDialogArea _shelfArea;
+    private double _shelfOffsetX;
+    private double _shelfOffsetY;
+
     public StormHudController(
         ICoreClientAPI api,
         HudClockSettings settings,
@@ -71,6 +77,11 @@ internal sealed class StormHudController : IDisposable
         OnPoll(0f); // prime
     }
 
+    /// <summary>
+    /// The underlying <see cref="GuiDialog"/> for HudShelf registration.
+    /// </summary>
+    internal GuiDialog HudDialog => _view;
+
     /// <summary>Call when mod settings change.</summary>
     public void OnSettingsChanged()
     {
@@ -82,6 +93,57 @@ internal sealed class StormHudController : IDisposable
         _manuallyHidden = false;
         OnPoll(0f);
     }
+
+    // ── HudShelf integration ────────────────────────────────────
+
+    /// <summary>
+    /// Called by <see cref="HudClockModSystem"/> after registering with
+    /// HudShelf. Applies the initial resolved position.
+    /// </summary>
+    internal void ApplyInitialShelfPosition(string anchor, double offsetX, double offsetY)
+    {
+        _shelfActive = true;
+        _shelfArea = MapAnchorString(anchor);
+        _shelfOffsetX = offsetX;
+        _shelfOffsetY = offsetY;
+        _view.RepositionFromShelf(_shelfArea, _shelfOffsetX, _shelfOffsetY);
+    }
+
+    /// <summary>
+    /// HudShelf position-changed callback. Fires on drag completion.
+    /// </summary>
+    internal void OnShelfPositionChanged(string anchor, double offsetX, double offsetY)
+    {
+        _shelfActive = true;
+        _shelfArea = MapAnchorString(anchor);
+        _shelfOffsetX = offsetX;
+        _shelfOffsetY = offsetY;
+        _view.RepositionFromShelf(_shelfArea, _shelfOffsetX, _shelfOffsetY);
+    }
+
+    private void ReapplyShelfPosition()
+    {
+        if (_shelfActive)
+        {
+            _view.RepositionFromShelf(_shelfArea, _shelfOffsetX, _shelfOffsetY);
+        }
+    }
+
+    private static EnumDialogArea MapAnchorString(string anchor) => anchor switch
+    {
+        "TopLeft"      => EnumDialogArea.LeftTop,
+        "TopCenter"    => EnumDialogArea.CenterTop,
+        "TopRight"     => EnumDialogArea.RightTop,
+        "CenterLeft"   => EnumDialogArea.LeftMiddle,
+        "Center"       => EnumDialogArea.CenterMiddle,
+        "CenterRight"  => EnumDialogArea.RightMiddle,
+        "BottomLeft"   => EnumDialogArea.LeftBottom,
+        "BottomCenter" => EnumDialogArea.CenterBottom,
+        "BottomRight"  => EnumDialogArea.RightBottom,
+        _ => EnumDialogArea.LeftTop,
+    };
+
+    // ── Private methods ────────────────────────────────
 
     /// <summary>Reacts to Main's layout changing (new anchor or size).</summary>
     private void OnMainLayoutChanged(object? sender, EventArgs e)
@@ -115,6 +177,7 @@ internal sealed class StormHudController : IDisposable
         }
 
         _view.Rebuild(anchor, solo + stacking);
+        ReapplyShelfPosition();
     }
 
     private bool ToggleManual(KeyCombination _)

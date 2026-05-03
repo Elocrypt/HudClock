@@ -40,6 +40,15 @@ internal sealed class MainHudController : IDisposable
     private readonly long _dataTickId;
     private bool _disposed;
 
+    // ── HudShelf integration state ──────────────────────────────
+    // When HudShelf is controlling our position, we store its values
+    // here and reapply after every Rebuild (since Rebuild uses
+    // HudClock's own anchor as an intermediate, then we override).
+    private bool _shelfActive;
+    private EnumDialogArea _shelfArea;
+    private double _shelfOffsetX;
+    private double _shelfOffsetY;
+
     /// <summary>
     /// Raised after each <see cref="MainHudView.Rebuild"/> completes — gives
     /// sibling HUDs (Storm) a chance to re-stack themselves based on our new
@@ -110,13 +119,81 @@ internal sealed class MainHudController : IDisposable
     /// </summary>
     public double CurrentLogicalOuterHeight => _view.CurrentLogicalOuterHeight;
 
+    /// <summary>
+    /// The underlying <see cref="GuiDialog"/> for HudShelf registration.
+    /// HudShelf needs the dialog instance for its <c>Element</c> field
+    /// and for reading composed bounds.
+    /// </summary>
+    internal GuiDialog HudDialog => _view;
+
     /// <summary>Invoked by the mod system when settings change.</summary>
     public void OnSettingsChanged()
     {
         _viewModel.Tick();
         _view.Rebuild(_settings.Display.Anchor);
+        ReapplyShelfPosition();
         LayoutChanged?.Invoke(this, EventArgs.Empty);
     }
+
+    // ── HudShelf integration ────────────────────────────────────
+
+    /// <summary>
+    /// Called by <see cref="HudClockModSystem"/> after registering with
+    /// HudShelf. Applies the initial resolved position (persisted or
+    /// default) and marks the shelf as active so subsequent Rebuilds
+    /// reapply the shelf position.
+    /// </summary>
+    internal void ApplyInitialShelfPosition(string anchor, double offsetX, double offsetY)
+    {
+        _shelfActive = true;
+        _shelfArea = MapAnchorString(anchor);
+        _shelfOffsetX = offsetX;
+        _shelfOffsetY = offsetY;
+        _view.RepositionFromShelf(_shelfArea, _shelfOffsetX, _shelfOffsetY);
+    }
+
+    /// <summary>
+    /// HudShelf position-changed callback. Fires on drag completion.
+    /// </summary>
+    internal void OnShelfPositionChanged(string anchor, double offsetX, double offsetY)
+    {
+        _shelfActive = true;
+        _shelfArea = MapAnchorString(anchor);
+        _shelfOffsetX = offsetX;
+        _shelfOffsetY = offsetY;
+        _view.RepositionFromShelf(_shelfArea, _shelfOffsetX, _shelfOffsetY);
+        // Notify Storm so it can re-stack if needed.
+        LayoutChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// After every Rebuild, reapply HudShelf's position if active.
+    /// Rebuild uses HudClock's configured anchor as an intermediate
+    /// (harmless, never rendered), then we override immediately.
+    /// </summary>
+    private void ReapplyShelfPosition()
+    {
+        if (_shelfActive)
+        {
+            _view.RepositionFromShelf(_shelfArea, _shelfOffsetX, _shelfOffsetY);
+        }
+    }
+
+    private static EnumDialogArea MapAnchorString(string anchor) => anchor switch
+    {
+        "TopLeft"      => EnumDialogArea.LeftTop,
+        "TopCenter"    => EnumDialogArea.CenterTop,
+        "TopRight"     => EnumDialogArea.RightTop,
+        "CenterLeft"   => EnumDialogArea.LeftMiddle,
+        "Center"       => EnumDialogArea.CenterMiddle,
+        "CenterRight"  => EnumDialogArea.RightMiddle,
+        "BottomLeft"   => EnumDialogArea.LeftBottom,
+        "BottomCenter" => EnumDialogArea.CenterBottom,
+        "BottomRight"  => EnumDialogArea.RightBottom,
+        _ => EnumDialogArea.LeftTop,
+    };
+
+    // ── Existing private methods (unchanged) ────────────────────
 
     private bool ToggleVisible(KeyCombination _)
     {
@@ -141,6 +218,7 @@ internal sealed class MainHudController : IDisposable
             if (_viewModel.HasVisibleIconChanged)
             {
                 _view.Rebuild(_settings.Display.Anchor);
+                ReapplyShelfPosition();
                 LayoutChanged?.Invoke(this, EventArgs.Empty);
             }
             else
