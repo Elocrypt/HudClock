@@ -35,6 +35,12 @@ jobs:
           tar -xzf vs.tar.gz -C "$HOME/vs"
           echo "VINTAGE_STORY=$HOME/vs" >> "$GITHUB_ENV"
 
+      - name: Build HudShelf dependency
+        run: |
+          git clone --depth 1 https://github.com/Elocrypt/HudShelf.git "$HOME/HudShelf"
+          dotnet build "$HOME/HudShelf/HudShelf.csproj" -c Release
+          echo "HUDSHELF_DLL=$HOME/HudShelf/bin/Release/HudShelf.dll" >> "$GITHUB_ENV"
+          
       - name: Restore
         run: dotnet restore HudClock.sln
 
