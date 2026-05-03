@@ -8,6 +8,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- CS1591: XML doc comment missing (acceptable on internal/private members) -->
     <NoWarn>$(NoWarn);1591</NoWarn>
+	<NoWarn>$(NoWarn);MSB3245</NoWarn>
     <Version>4.0.0</Version>
     <AssemblyVersion>4.0.0.0</AssemblyVersion>
     <FileVersion>4.0.0.0</FileVersion>
@@ -46,9 +47,7 @@
       <Private>false</Private>
     </Reference>
 	<Reference Include="HudShelf">
-      <HintPath Condition="'$(HUDSHELF_DLL)' != ''">$(HUDSHELF_DLL)</HintPath>
-      <HintPath Condition="'$(HUDSHELF_DLL)' == ''">..\..\HudShelf\bin\Debug\HudShelf.dll</HintPath>
-	  <HintPath>F:\DevHub\03_Modding\VintageStory\v1.22.0\HudShelf\bin\Debug\HudShelf.dll</HintPath>
+      <HintPath>$(HUDSHELF_DLL)</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

@@ -28,6 +28,13 @@
     <VintagestoryData Condition="'$(VintagestoryData)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.config/VintagestoryData</VintagestoryData>
   </PropertyGroup>
 
+
+  <PropertyGroup>
+    <!-- Local development only - set this to your HudShelf build output path -->
+    <HUDSHELF_DLL Condition="'$(HUDSHELF_DLL)' == ''">F:\DevHub\03_Modding\VintageStory\v1.22.0\HudShelf\bin\Debug\HudShelf.dll</HUDSHELF_DLL>
+  </PropertyGroup>
+
+  
   <!-- Shared language + nullability settings for every project in this repo. -->
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
