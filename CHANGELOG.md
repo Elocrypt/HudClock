@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026/05/03
+
+### Added
+
+- **[HudShelf](https://github.com/Elocrypt/HudShelf) integration.** When HudShelf is installed, both the main HUD and the storm HUD become drag-to-position via HudShelf's edit mode. The user presses the HudShelf hotkey to enter edit mode, drags either HUD to any of nine snap zones (corners, edge midpoints, or center), and releases. The new position persists across game sessions via HudShelf's persistence file. When HudShelf is not installed, HUD Clock behaves exactly as before — the existing anchor setting and stacking logic are unchanged.
+- Soft-depend bridge files at `Infrastructure/Integration/` implement the [HudShelf bridge pattern](https://github.com/Elocrypt/HudShelf/blob/main/docs/BRIDGE.md). No HudShelf types appear in field declarations; the JIT never compiles the bridge's inner methods when HudShelf is absent, so there is zero load-time or runtime cost without HudShelf.
+- `MainHudView.RepositionFromShelf` and `StormHudView.RepositionFromShelf` — mutate composed bounds in place (same technique as VS's title-bar drag) to override the HUD position without a full recompose.
+- `MainHudController.HudDialog` and `StormHudController.HudDialog` — internal properties exposing the underlying `GuiDialog` for HudShelf registration.
+
+### Changed
+
+- After every `Rebuild` (settings change, icon change, stacking recalc), controllers now call `ReapplyShelfPosition()` so the HudShelf-managed position is never overwritten by the native anchor logic. The intermediate native-anchor state is never rendered.
+
 ## [4.2.3] - 2026/04/30
 
 ### Added
@@ -96,7 +109,9 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.2.2...HEAD
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.2.3...HEAD
+[4.3.0]: https://github.com/Elocrypt/HudClock/compare/v4.2.3...v4.3.0
+[4.2.3]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.3
 [4.2.2]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.2
 [4.2.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.1
 [4.2.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.0

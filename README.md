@@ -69,6 +69,7 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 
 ### Layout
 - Any of six screen anchors: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
+- **Drag-to-position** via [HudShelf](https://github.com/Elocrypt/HudShelf) — install HudShelf, press its edit-mode hotkey, and drag the main HUD or storm dialog anywhere on screen. Position persists across sessions. HudShelf is optional; without it, the anchor dropdown works exactly as before
 - Offsets tuned to avoid the minimap, hotbar, hover tooltip, and coordinate readout
 - Individual lines can be toggled off one at a time
 
@@ -95,6 +96,8 @@ Client-side only — no server install required.
 
 Everything else lives in the settings dialog — line visibility, HUD position, storm/rift policy, temperature unit, wind format, time format. Changes save automatically and persist across worlds.
 
+If [HudShelf](https://github.com/Elocrypt/HudShelf) is installed, press its edit-mode hotkey (default <kbd>Ctrl</kbd>+<kbd>F10</kbd>, rebindable) to enter drag mode. Both the main HUD and the storm dialog get outlined; drag either one anywhere on screen and release to snap it to one of nine anchor zones. The position persists via HudShelf's save file. HudShelf is optional — without it, use the anchor dropdown in the settings dialog.
+
 Settings are stored at:
 - **Windows:** `%AppData%\VintagestoryData\ModConfig\hudclock\settings.json`
 - **Linux:** `~/.config/VintagestoryData/ModConfig/hudclock/settings.json`
@@ -107,6 +110,7 @@ Editing the JSON directly while the game is running works but a settings-dialog 
 - Client-side only. Safe to use on multiplayer servers the mod isn't installed on.
 - No known conflicts. The mod reads from (but never writes to) VS's temporal-storm and rift systems via reflection, which is why each VS version is pinned explicitly — an API shape change will gracefully degrade those two lines rather than crash the HUD.
 - **Mod integrations.** HUD Clock displays extended body-temperature and apparent ("feels like") temperature when another mod publishes them under a small set of well-known watched-attribute keys. Compatible out of the box with [Immersive Body Temperature](https://mods.vintagestory.at/immersivebodytemperature) by Cer0; the contract is documented in [`docs/integration.md`](docs/integration.md) so any temperature mod can opt in.
+- **[HudShelf](https://github.com/Elocrypt/HudShelf)** (optional). When installed, both the main HUD and the storm dialog become freely draggable via HudShelf's edit-mode hotkey. HUD Clock soft-depends on HudShelf — it works identically without it.
 
 ## Languages
 

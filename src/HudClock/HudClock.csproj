@@ -45,6 +45,10 @@
       <HintPath>$(VintagestoryDir)\Lib\protobuf-net.dll</HintPath>
       <Private>false</Private>
     </Reference>
+	<Reference Include="HudShelf">
+      <HintPath>F:\DevHub\03_Modding\VintageStory\v1.22.0\HudShelf\bin\Debug\HudShelf.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <!-- Grant the test assembly access to internal types. -->

@@ -98,6 +98,29 @@ internal sealed class StormHudView : HudElement
         if (!IsOpened()) TryOpen();
     }
 
+    // ── HudShelf integration ────────────────────────────────────
+
+    /// <summary>
+    /// Reposition the composed dialog to a HudShelf-provided location.
+    /// Called after every <see cref="Rebuild"/> when HudShelf is
+    /// controlling position, and on each HudShelf position-changed
+    /// callback.
+    /// </summary>
+    public void RepositionFromShelf(EnumDialogArea area, double screenOffsetX, double screenOffsetY)
+    {
+        if (SingleComposer?.Bounds is null) return;
+
+        var guiScale = GuiElement.scaled(1.0);
+        if (guiScale <= 0) guiScale = 1.0;
+
+        SingleComposer.Bounds.Alignment = area;
+        SingleComposer.Bounds.fixedOffsetX = screenOffsetX / guiScale;
+        SingleComposer.Bounds.fixedOffsetY = screenOffsetY / guiScale;
+        SingleComposer.Bounds.CalcWorldBounds();
+    }
+
+    // ── Private helpers ─────────────────────────────
+
     private string FormatApproachingText(double daysUntilNext)
     {
         // Render as hh:mm of in-game time until the storm.

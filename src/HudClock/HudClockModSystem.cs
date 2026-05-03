@@ -11,10 +11,12 @@ using HudClock.Domain.Time;
 using HudClock.Domain.Weather;
 using HudClock.Infrastructure.Assets;
 using HudClock.Infrastructure.Input;
+using HudClock.Infrastructure.Integration;
 using HudClock.Infrastructure.Settings;
 using HudClock.Presentation.ClaimHud;
 using HudClock.Presentation.MainHud;
 using HudClock.Presentation.SettingsDialog;
+using HudClock.Presentation.Shared;
 using HudClock.Presentation.StormHud;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -50,6 +52,10 @@ public sealed class HudClockModSystem : ModSystem
     private StormHudController? _stormHud;
     private ClaimHudController? _claimHud;
     private SettingsDialogController? _settingsDialog;
+
+    // HudShelf integration — typed as object? per the bridge pattern.
+    private object? _mainShelfHandle;
+    private object? _stormShelfHandle;
 
     /// <inheritdoc />
     public override bool ShouldLoad(EnumAppSide forSide) => forSide == EnumAppSide.Client;
@@ -97,10 +103,16 @@ public sealed class HudClockModSystem : ModSystem
             _calendar, _weather, _rift, _room, _claim, _playerStats,
             iconCache, keybinds, log);
 
+        _stormHud = new StormHudController(api, settings, _storm, _mainHud, iconCache, keybinds, log);
+
+        // ── HudShelf: register the main HUD for drag-to-position ──
+        RegisterMainHudWithShelf(api, settings);
+        RegisterStormHudWithShelf(api, settings);
+
         // Storm takes a reference to the main controller so it can subscribe to
         // Main's LayoutChanged event and restack itself below Main when they
         // share an anchor. No periodic ticks or peer-list walking involved.
-        _stormHud = new StormHudController(api, settings, _storm, _mainHud, iconCache, keybinds, log);
+
         _claimHud = new ClaimHudController(api, settings, _claim, log);
         _settingsDialog = new SettingsDialogController(api, settings, keybinds, log);
 
@@ -109,6 +121,69 @@ public sealed class HudClockModSystem : ModSystem
         log.Notification("Domain services and HUD components online.");
         return true;
     }
+
+    // ── HudShelf registration ───────────────────────────────────
+    /// <summary>
+    /// Register the main HUD with HudShelf if installed. Falls through
+    /// silently when HudShelf is absent — the bridge no-ops.
+    /// </summary>
+    private void RegisterMainHudWithShelf(ICoreClientAPI api, HudClockSettings settings)
+    {
+        if (_mainHud is null) return;
+
+        // Convert HudClock's default offset from logical pixels (what
+        // WithFixedAlignmentOffset expects) to screen pixels (what
+        // HudShelf stores). GuiElement.scaled(val) = val * guiScale.
+        var defaultOffsetY = GuiElement.scaled(
+            HudAnchorOffsets.GetSoloOffsetY(settings.Display.Anchor));
+
+        _mainShelfHandle = HudShelfBridge.TryRegister(
+            api,
+            id: "hudclockpatch:main",
+            element: _mainHud.HudDialog,
+            defaultAnchor: settings.Display.Anchor.ToString(),
+            defaultOffsetX: 0,
+            defaultOffsetY: defaultOffsetY,
+            onPositionChanged: (anchor, x, y) =>
+                _mainHud.OnShelfPositionChanged(anchor, x, y),
+            getBounds: () => (
+                _mainHud.HudDialog.SingleComposer?.Bounds.OuterWidth ?? 0,
+                _mainHud.HudDialog.SingleComposer?.Bounds.OuterHeight ?? 0));
+
+        // Apply the initial resolved position (persisted or default).
+        if (HudShelfBridge.TryGetPosition(_mainShelfHandle) is { } p)
+        {
+            _mainHud.ApplyInitialShelfPosition(p.Anchor, p.OffsetX, p.OffsetY);
+        }
+    }
+
+    private void RegisterStormHudWithShelf(ICoreClientAPI api, HudClockSettings settings)
+    {
+        if (_stormHud is null) return;
+
+        var defaultOffsetY = GuiElement.scaled(
+            HudAnchorOffsets.GetSoloOffsetY(settings.Storm.Anchor));
+
+        _stormShelfHandle = HudShelfBridge.TryRegister(
+            api,
+            id: "hudclockpatch:storm",
+            element: _stormHud.HudDialog,
+            defaultAnchor: settings.Storm.Anchor.ToString(),
+            defaultOffsetX: 0,
+            defaultOffsetY: defaultOffsetY,
+            onPositionChanged: (anchor, x, y) =>
+                _stormHud.OnShelfPositionChanged(anchor, x, y),
+            getBounds: () => (
+                _stormHud.HudDialog.SingleComposer?.Bounds.OuterWidth ?? 0,
+                _stormHud.HudDialog.SingleComposer?.Bounds.OuterHeight ?? 0));
+
+        if (HudShelfBridge.TryGetPosition(_stormShelfHandle) is { } p)
+        {
+            _stormHud.ApplyInitialShelfPosition(p.Anchor, p.OffsetX, p.OffsetY);
+        }
+    }
+
+    // ── Settings / lifecycle (unchanged except shelf cleanup) ───
 
     private void OnSettingsChanged(object? sender, EventArgs e)
     {
@@ -143,6 +218,12 @@ public sealed class HudClockModSystem : ModSystem
 
         if (_settings is not null) _settingsStore?.Save(_settings);
 
+        // Unregister from HudShelf before tearing down.
+        HudShelfBridge.Unregister(_mainShelfHandle);
+        HudShelfBridge.Unregister(_stormShelfHandle);
+        _mainShelfHandle = null;
+        _stormShelfHandle = null;
+
         // Tear down presentation first, then services, then shared assets.
         _settingsDialog?.Dispose();  _settingsDialog = null;
         _claimHud?.Dispose();        _claimHud = null;
@@ -163,6 +244,11 @@ public sealed class HudClockModSystem : ModSystem
     /// <inheritdoc />
     public override void Dispose()
     {
+        HudShelfBridge.Unregister(_mainShelfHandle);
+        HudShelfBridge.Unregister(_stormShelfHandle);
+        _mainShelfHandle = null;
+        _stormShelfHandle = null;
+
         _settingsDialog?.Dispose();
         _claimHud?.Dispose();
         _stormHud?.Dispose();
