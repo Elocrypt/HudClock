@@ -23,7 +23,7 @@ internal sealed class StormHudView : HudElement
     private const int LineWidth = 180;
     private const int IconWidth = 100;
     private const int LinePadding = 10;
-    private const int Padding = 10;
+    internal const int Padding = 10;
     private const string TextElementName = "hudclock:storm-text";
 
     private readonly IconCache _iconCache;
