@@ -4,6 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.1] - 2026/05/10
+
+### Fixed
+
+- **HudShelf outline placement.** The `GetBounds` callbacks registered with
+  HudShelf now return the visible panel dimensions rather than the full dialog
+  footprint. Both HUDs are built with `WithFixedPadding(10)`, so the previous
+  `OuterWidth/Height` values included 20 px of padding on each axis, pushing
+  the edit-mode outline noticeably outside the panel edge. The callbacks now
+  subtract `Padding × 2 × guiScale` from each dimension, placing the outline
+  at the panel boundary.
+
 ## [4.3.0] - 2026/05/03
 
 ### Added
@@ -109,7 +121,8 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.2.3...HEAD
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.3.1...HEAD
+[4.3.1]: https://github.com/Elocrypt/HudClock/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/Elocrypt/HudClock/compare/v4.2.3...v4.3.0
 [4.2.3]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.3
 [4.2.2]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.2
