@@ -146,9 +146,19 @@ public sealed class HudClockModSystem : ModSystem
             defaultOffsetY: defaultOffsetY,
             onPositionChanged: (anchor, x, y) =>
                 _mainHud.OnShelfPositionChanged(anchor, x, y),
-            getBounds: () => (
-                _mainHud.HudDialog.SingleComposer?.Bounds.OuterWidth ?? 0,
-                _mainHud.HudDialog.SingleComposer?.Bounds.OuterHeight ?? 0));
+            getBounds: () =>
+            {
+                var b = _mainHud.HudDialog.SingleComposer?.Bounds;
+                if (b is null) return (0, 0);
+                // OuterWidth/Height include the dialog's WithFixedPadding on
+                // each side. Subtract it so HudShelf's outline sits at the
+                // visible panel edge rather than floating outside it.
+                var guiScale = GuiElement.scaled(1.0);
+                if (guiScale <= 0) guiScale = 1.0;
+                var padPx = MainHudView.Padding * 2 * guiScale;
+                return (Math.Max(0, b.OuterWidth - padPx),
+                        Math.Max(0, b.OuterHeight - padPx));
+            });
 
         // Apply the initial resolved position (persisted or default).
         if (HudShelfBridge.TryGetPosition(_mainShelfHandle) is { } p)
@@ -173,9 +183,16 @@ public sealed class HudClockModSystem : ModSystem
             defaultOffsetY: defaultOffsetY,
             onPositionChanged: (anchor, x, y) =>
                 _stormHud.OnShelfPositionChanged(anchor, x, y),
-            getBounds: () => (
-                _stormHud.HudDialog.SingleComposer?.Bounds.OuterWidth ?? 0,
-                _stormHud.HudDialog.SingleComposer?.Bounds.OuterHeight ?? 0));
+            getBounds: () =>
+            {
+                var b = _stormHud.HudDialog.SingleComposer?.Bounds;
+                if (b is null) return (0, 0);
+                var guiScale = GuiElement.scaled(1.0);
+                if (guiScale <= 0) guiScale = 1.0;
+                var padPx = StormHudView.Padding * 2 * guiScale;
+                return (Math.Max(0, b.OuterWidth - padPx),
+                        Math.Max(0, b.OuterHeight - padPx));
+            });
 
         if (HudShelfBridge.TryGetPosition(_stormShelfHandle) is { } p)
         {

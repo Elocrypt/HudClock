@@ -35,7 +35,7 @@ internal sealed class MainHudView : HudElement
     private const int OffsetX = 10;
     private const int LineWidth = 300;
     private const int LineHeight = 17;
-    private const int Padding = 10;
+    internal const int Padding = 10;
     private const int LinePadding = 5;
     private const int RoomIconSize = 32;
 
