@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.2] - 2026/06/04
+
+### Fixed
+
+- Season icon and label now derive from the calendar month rather than VS's
+  position-based `IGameCalendar.GetSeason` API. The API routes through
+  `OnGetHemisphere` / `OnGetLatitude` delegates that world-generation mods can
+  override. Realistic Biome Generation patches `GenMaps.getLatitude` and
+  overrides `polarEquatorDistance` in a way that causes `GetSeason` to return
+  the wrong hemisphere for the player's position — players on a new world with
+  default settings saw "Fall" in May. Deriving from the month (Mar–May = Spring,
+  Jun–Aug = Summer, Sep–Nov = Fall, Dec–Feb = Winter) is authoritative, mod-safe,
+  and consistent with the in-game date line in all cases. Vanilla behaviour is
+  unchanged.
+
 ## [4.3.1] - 2026/05/10
 
 ### Fixed
@@ -121,9 +136,11 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.3.1...HEAD
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.3.2...HEAD
+[4.3.2]: https://github.com/Elocrypt/HudClock/compare/v4.3.1...v4.3.2
 [4.3.1]: https://github.com/Elocrypt/HudClock/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/Elocrypt/HudClock/compare/v4.2.3...v4.3.0
+[4.3.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.3.1
 [4.2.3]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.3
 [4.2.2]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.2
 [4.2.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.1
