@@ -41,7 +41,27 @@ internal sealed class CalendarService : ICalendarService
     /// <inheritdoc />
     public EnumSeason GetSeason(BlockPos pos)
     {
-        if (pos is null) throw new ArgumentNullException(nameof(pos));
-        return _api.World.Calendar.GetSeason(pos);
+        // We deliberately derive season from the calendar month rather than the
+        // position-based IGameCalendar.GetSeason(pos) API.
+        //
+        // GetSeason routes through the OnGetHemisphere / OnGetLatitude delegates
+        // that the survival mod assigns during world-gen init. Third-party
+        // world-gen mods (confirmed: Realistic Biome Generation) override
+        // polarEquatorDistance and patch GenMaps.getLatitude in ways that cause
+        // GetSeason to return an incorrect hemisphere for the player's position —
+        // players near the equator see "Fall" on May 1st.
+        //
+        // For a display mod, the calendar month is the authoritative answer to
+        // "what time of year is it?" and is unaffected by latitude patches.
+        // The `pos` parameter is accepted only to satisfy the interface; it is
+        // intentionally unused here.
+        int month = _api.World.Calendar.Month;
+        return month switch
+        {
+            3 or 4 or 5 => EnumSeason.Spring,
+            6 or 7 or 8 => EnumSeason.Summer,
+            9 or 10 or 11 => EnumSeason.Fall,
+            _ => EnumSeason.Winter,  // months 12, 1, 2
+        };
     }
 }
