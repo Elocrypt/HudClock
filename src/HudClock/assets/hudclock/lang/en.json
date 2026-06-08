@@ -87,6 +87,7 @@
   "hudclock:settings-icon-theme-modern": "Modern",
   "hudclock:settings-icon-theme-classic": "Classic",
   "hudclock:settings-icon-theme-custom": "Custom",
+  "hudclock:settings-hemisphere-aware-season": "Hemisphere-aware seasons",
   "hudclock:body-temperature-prefix": "Body: {0} ({1} {2})",
   "hudclock:intoxication": "Intoxication: {0}%",
   "hudclock:settings-section-player-stats": "Player stats",

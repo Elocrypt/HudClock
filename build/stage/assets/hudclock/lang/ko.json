@@ -87,6 +87,7 @@
   "hudclock:settings-icon-theme-modern": "모던",
   "hudclock:settings-icon-theme-classic": "클래식",
   "hudclock:settings-icon-theme-custom": "사용자 정의",
+  "hudclock:settings-hemisphere-aware-season": "반구에 따른 계절",
   "hudclock:body-temperature-prefix": "체온: {0} ({1} {2})",
   "hudclock:intoxication": "취기: {0}%",
   "hudclock:settings-section-player-stats": "플레이어 상태",

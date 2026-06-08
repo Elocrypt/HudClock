@@ -139,7 +139,9 @@ internal sealed class MainHudViewModel
         BlockPos pos = _playerPosition();
 
         _calendarSnapshot = _calendar.GetSnapshot();
-        _season = _calendar.GetSeason(pos);
+        _season = _settings.Appearance.HemisphereAwareSeason
+            ? _calendar.GetSeasonAt(pos)
+            : _calendar.GetSeason(pos);
         _temperatureCelsius = _weather.GetTemperatureCelsius(pos);
         _windSpeed = _weather.GetWindSpeed(pos);
         // Query the rift code whenever policy might show it; the service returns null

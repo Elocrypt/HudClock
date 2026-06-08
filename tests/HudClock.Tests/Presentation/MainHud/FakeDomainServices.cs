@@ -19,6 +19,7 @@ internal sealed class FakeCalendarService : ICalendarService
     public EnumSeason Season { get; set; } = EnumSeason.Winter;
     public CalendarSnapshot GetSnapshot() => Snapshot;
     public EnumSeason GetSeason(BlockPos pos) => Season;
+    public EnumSeason GetSeasonAt(BlockPos pos) => Season;
 }
 
 internal sealed class FakeWeatherService : IWeatherService
