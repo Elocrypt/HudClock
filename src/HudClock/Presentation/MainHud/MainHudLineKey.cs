@@ -17,6 +17,7 @@ internal enum MainHudLineKey
     ApparentTemperature,
     DateAndTime,
     Realtime,
+    MoonPhase,
     Wind,
     Rainfall,
     Intoxication,

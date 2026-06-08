@@ -756,6 +756,60 @@ public class MainHudViewModelTests
         Assert.Equal("14:30", vm.DateAndTimeText);
     }
 
+    // --- Moon phase ---
+
+    [Fact]
+    public void Moon_phase_hidden_by_default()
+    {
+        // New optional line; opt-in like rainfall and the player-stat lines.
+        var vm = MakeVm();
+
+        Assert.False(vm.IsMoonPhaseLineVisible);
+        Assert.Null(vm.MoonPhaseText);
+    }
+
+    [Fact]
+    public void Moon_phase_shown_when_enabled_uses_phase_key()
+    {
+        var settings = new HudClockSettings();
+        settings.Time.ShowMoonPhase = true;
+        var calendar = new FakeCalendarService
+        {
+            Snapshot = new global::HudClock.Domain.Calendar.CalendarSnapshot(1, "january", 1, 9, 0, "fullmoon"),
+        };
+
+        var vm = MakeVm(settings: settings, calendar: calendar);
+
+        Assert.True(vm.IsMoonPhaseLineVisible);
+        Assert.NotNull(vm.MoonPhaseText);
+        // Identity translator returns the lang key, so the canonical phase
+        // suffix appears verbatim in the output.
+        Assert.Contains("moon-phase-fullmoon", vm.MoonPhaseText);
+    }
+
+    [Fact]
+    public void Moon_phase_line_appears_in_rendering_order_after_realtime()
+    {
+        var settings = new HudClockSettings();
+        settings.Weather.ShowSeason = false;
+        settings.Weather.ShowTemperature = false;
+        settings.Weather.Wind = WindDisplay.Hidden;
+        settings.Time.ShowDate = false;
+        settings.Time.ShowTime = false;
+        settings.Time.ShowRealtime = true;
+        settings.Time.ShowMoonPhase = true;
+        settings.Rift.Display = RiftDisplay.Hidden;
+
+        var vm = MakeVm(settings: settings);
+
+        var expected = new[]
+        {
+            MainHudLineKey.Realtime,
+            MainHudLineKey.MoonPhase,
+        };
+        Assert.Equal(expected, new List<MainHudLineKey>(vm.VisibleLineKeys()));
+    }
+
     [Fact]
     public void Season_icon_path_matches_season_on_default_modern_theme()
     {

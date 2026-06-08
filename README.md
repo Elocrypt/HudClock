@@ -27,6 +27,7 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 - In-game **date**, **time**, and **season**, with a large seasonal illustration that tracks the current season
 - 12-hour or 24-hour format toggle
 - Optional **real-time clock** line for quick glances at real-world time
+- Optional **moon phase** line — current lunar phase from New Moon through Full Moon to Waning Crescent, handy for tracking phase-tied events when overcast skies or dense biomes keep the moon out of view
 
 ### Weather
 - Current **temperature** at the player's position, Celsius or Fahrenheit

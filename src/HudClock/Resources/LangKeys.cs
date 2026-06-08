@@ -93,6 +93,17 @@ internal static class LangKeys
         public const string SeasonStem = "hudclock:season-"; // + winter / spring / summer / fall
 
         public const string MonthStem  = "hudclock:month-";  // + january..december
+
+        /// <summary>Format: "Moon: {0}" where {0} is a localized phase name.</summary>
+        public const string MoonPhasePrefix = "hudclock:moon-phase-prefix";
+
+        /// <summary>
+        /// Stem for moon-phase names: + "newmoon" / "waxingcrescent" /
+        /// "firstquarter" / "waxinggibbous" / "fullmoon" / "waninggibbous" /
+        /// "thirdquarter" / "waningcrescent". Suffix is supplied by
+        /// <c>CalendarSnapshot.MoonPhaseKey</c>.
+        /// </summary>
+        public const string MoonPhaseStem = "hudclock:moon-phase-";
     }
 
     /// <summary>Temporal storm HUD messages.</summary>
@@ -142,6 +153,7 @@ internal static class LangKeys
         public const string ShowDate               = "hudclock:settings-show-date";
         public const string ShowTime               = "hudclock:settings-show-time";
         public const string ShowRealtime           = "hudclock:settings-show-realtime";
+        public const string ShowMoonPhase          = "hudclock:settings-show-moon-phase";
         public const string ShowRoom               = "hudclock:settings-show-room";
         public const string ShowBodyTemperature    = "hudclock:settings-show-body-temperature";
         public const string ShowIntoxication       = "hudclock:settings-show-intoxication";

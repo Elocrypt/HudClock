@@ -35,8 +35,32 @@ internal sealed class CalendarService : ICalendarService
             MonthKey: calendar.MonthName.ToString().ToLowerInvariant(),
             Year: calendar.Year,
             Hour: hour,
-            Minute: minute);
+            Minute: minute,
+            MoonPhaseKey: MoonPhaseKey(calendar.MoonPhase));
     }
+
+    /// <summary>
+    /// Map VS's <see cref="EnumMoonPhase"/> to a stable, astronomical lang-key
+    /// suffix. The enum's own member names are engine-internal
+    /// (<c>Empty/Grow1/Grow2/Grow3/Full/Shrink1/Shrink2/Shrink3</c>, integer
+    /// values 0..7), so we translate to the conventional 8-phase names players
+    /// recognize. <c>Full</c> is value 4 — which resolves the common
+    /// "is full moon phase 4 or 5?" confusion, since some references 1-index
+    /// the cycle. Kept as a string so <see cref="CalendarSnapshot"/> stays free
+    /// of any VS API type, mirroring the MonthName → MonthKey treatment.
+    /// </summary>
+    private static string MoonPhaseKey(EnumMoonPhase phase) => phase switch
+    {
+        EnumMoonPhase.Empty   => "newmoon",
+        EnumMoonPhase.Grow1   => "waxingcrescent",
+        EnumMoonPhase.Grow2   => "firstquarter",
+        EnumMoonPhase.Grow3   => "waxinggibbous",
+        EnumMoonPhase.Full    => "fullmoon",
+        EnumMoonPhase.Shrink1 => "waninggibbous",
+        EnumMoonPhase.Shrink2 => "thirdquarter",
+        EnumMoonPhase.Shrink3 => "waningcrescent",
+        _ => "newmoon",
+    };
 
     /// <inheritdoc />
     public EnumSeason GetSeason(BlockPos pos)
