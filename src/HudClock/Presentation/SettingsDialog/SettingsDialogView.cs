@@ -128,6 +128,9 @@ internal sealed class SettingsDialogView : GuiDialog
                 (int)_settings.Appearance.IconTheme,
                 "icon-theme",
                 (code, sel) => _settings.Appearance.IconTheme = ParseEnum<IconTheme>(code));
+            yy = AddSwitch(c, yy, LangKeys.Settings.HemisphereAwareSeason, "hemisphere-season",
+                _settings.Appearance.HemisphereAwareSeason,
+                v => _settings.Appearance.HemisphereAwareSeason = v);
             return yy;
         });
 

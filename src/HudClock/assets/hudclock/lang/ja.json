@@ -87,6 +87,7 @@
   "hudclock:settings-icon-theme-modern": "モダン",
   "hudclock:settings-icon-theme-classic": "クラシック",
   "hudclock:settings-icon-theme-custom": "カスタム",
+  "hudclock:settings-hemisphere-aware-season": "半球に応じた季節",
   "hudclock:body-temperature-prefix": "体温: {0} ({1} {2})",
   "hudclock:intoxication": "酔い: {0}%",
   "hudclock:settings-section-player-stats": "プレイヤー状態",

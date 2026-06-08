@@ -148,6 +148,7 @@ internal static class LangKeys
         public const string ShowApparentTemperature = "hudclock:settings-show-apparent-temperature";
         public const string ShowOnlinePlayers      = "hudclock:settings-show-online-players";
         public const string ShowClaim              = "hudclock:settings-show-claim";
+        public const string HemisphereAwareSeason = "hudclock:settings-hemisphere-aware-season";
 
         // Dropdown labels.
         public const string HudPosition = "hudclock:settings-hud-position";

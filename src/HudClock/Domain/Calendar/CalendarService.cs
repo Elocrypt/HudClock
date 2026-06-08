@@ -41,20 +41,16 @@ internal sealed class CalendarService : ICalendarService
     /// <inheritdoc />
     public EnumSeason GetSeason(BlockPos pos)
     {
-        // We deliberately derive season from the calendar month rather than the
-        // position-based IGameCalendar.GetSeason(pos) API.
+        // Deliberately derives from the calendar month rather than the position-based
+        // IGameCalendar.GetSeason API. GetSeason routes through OnGetHemisphere /
+        // OnGetLatitude delegates that world-gen mods (confirmed: Realistic Biome
+        // Generation) override, causing incorrect hemisphere detection. For a display
+        // mod the month is the authoritative answer to "what time of year is it?" and
+        // is completely unaffected by latitude patches.
         //
-        // GetSeason routes through the OnGetHemisphere / OnGetLatitude delegates
-        // that the survival mod assigns during world-gen init. Third-party
-        // world-gen mods (confirmed: Realistic Biome Generation) override
-        // polarEquatorDistance and patch GenMaps.getLatitude in ways that cause
-        // GetSeason to return an incorrect hemisphere for the player's position —
-        // players near the equator see "Fall" on May 1st.
-        //
-        // For a display mod, the calendar month is the authoritative answer to
-        // "what time of year is it?" and is unaffected by latitude patches.
         // The `pos` parameter is accepted only to satisfy the interface; it is
-        // intentionally unused here.
+        // intentionally unused here. Hemisphere-aware behavior is available via
+        // GetSeasonAt when the user has explicitly opted in.
         int month = _api.World.Calendar.Month;
         return month switch
         {
@@ -63,5 +59,14 @@ internal sealed class CalendarService : ICalendarService
             9 or 10 or 11 => EnumSeason.Fall,
             _ => EnumSeason.Winter,  // months 12, 1, 2
         };
+    }
+
+    /// <inheritdoc />
+    public EnumSeason GetSeasonAt(BlockPos pos)
+    {
+        if (pos is null) throw new ArgumentNullException(nameof(pos));
+        // Direct VS API call — hemisphere-aware but sensitive to world-gen mod
+        // overrides of the latitude/hemisphere delegates.
+        return _api.World.Calendar.GetSeason(pos);
     }
 }

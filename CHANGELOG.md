@@ -4,6 +4,25 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.3] - 2026/06/08
+
+### Added
+
+- **Hemisphere-aware seasons** toggle (Appearance section in settings, default on).
+  Restores the vanilla-accurate position-based season for players in the southern
+  hemisphere (Fall in May, Spring in November, etc.), which had regressed in 4.3.2.
+  Turn it off to fall back to the calendar-month derivation (Mar–May = Spring, etc.),
+  which is unaffected by world-generation mods that override VS's latitude delegates —
+  recommended for players using Realistic Biome Generation if the wrong season shows
+  on a fresh world.
+
+### Fixed
+
+- Regression from 4.3.2 where the season always followed the calendar month and ignored
+  the player's hemisphere, so vanilla southern-hemisphere players saw the wrong season.
+  The hemisphere-aware default is restored; the month-based behavior is now opt-out via
+  the new toggle.
+
 ## [4.3.2] - 2026/06/04
 
 ### Fixed
@@ -136,10 +155,13 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.3.2...HEAD
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.3.3...HEAD
+[4.3.3]: https://github.com/Elocrypt/HudClock/compare/v4.3.2...v4.3.3
 [4.3.2]: https://github.com/Elocrypt/HudClock/compare/v4.3.1...v4.3.2
 [4.3.1]: https://github.com/Elocrypt/HudClock/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/Elocrypt/HudClock/compare/v4.2.3...v4.3.0
+[4.3.3]: htpps://github.com/Elocrypt/HudClock/releases/tag/v4.3.3
+[4.3.2]: htpps://github.com/Elocrypt/HudClock/releases/tag/v4.3.2
 [4.3.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.3.1
 [4.2.3]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.3
 [4.2.2]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.2

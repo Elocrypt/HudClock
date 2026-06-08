@@ -34,4 +34,20 @@ internal sealed class AppearanceOptions
     /// <see cref="AppearanceOptions"/> section deserializes to default values.
     /// </summary>
     public IconTheme IconTheme { get; set; } = IconTheme.Modern;
+
+    /// <summary>
+    /// When <see langword="true"/> (default), the season icon and label use VS's
+    /// position-based <c>IGameCalendar.GetSeason</c> API, which returns the
+    /// hemisphere-correct season — southern hemisphere players see Fall in May,
+    /// etc. This is the vanilla-accurate behavior.
+    /// <para>
+    /// Set to <see langword="false"/> to derive the season from the calendar
+    /// month instead (Mar–May = Spring, Jun–Aug = Summer, Sep–Nov = Fall,
+    /// Dec–Feb = Winter). The month-based path is unaffected by world-generation
+    /// mods that override VS's latitude delegates, so turn this off if a
+    /// world-gen mod (notably Realistic Biome Generation) is causing the wrong
+    /// season to display on a fresh world.
+    /// </para>
+    /// </summary>
+    public bool HemisphereAwareSeason { get; set; } = true;
 }
