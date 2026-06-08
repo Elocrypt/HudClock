@@ -14,9 +14,19 @@ namespace HudClock.Domain.Calendar;
 /// <param name="Year">Current calendar year.</param>
 /// <param name="Hour">Hour of day, 0-23.</param>
 /// <param name="Minute">Minute of hour, 0-59.</param>
+/// <param name="MoonPhaseKey">
+/// Lowercase canonical moon-phase identifier suitable for building a lang key
+/// (e.g. <c>"fullmoon"</c> → <c>"moon-phase-fullmoon"</c>). Kept as a plain
+/// string for the same reason as <paramref name="MonthKey"/> — consumers stay
+/// free of any dependency on <c>Vintagestory.API.Common.EnumMoonPhase</c>, and
+/// the VS enum's internal member names (<c>Empty/Grow1…/Full/Shrink1…</c>) are
+/// normalized to astronomical names in <see cref="CalendarService"/>. Defaults
+/// to empty so existing 5-arg construction sites (tests, fakes) keep compiling.
+/// </param>
 internal readonly record struct CalendarSnapshot(
     int DayOfMonth,
     string MonthKey,
     int Year,
     int Hour,
-    int Minute);
+    int Minute,
+    string MoonPhaseKey = "");

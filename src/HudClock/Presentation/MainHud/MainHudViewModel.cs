@@ -221,6 +221,7 @@ internal sealed class MainHudViewModel
         if (IsApparentTemperatureLineVisible)  mask |= 1L << (int)MainHudLineKey.ApparentTemperature;
         if (IsDateAndTimeLineVisible)          mask |= 1L << (int)MainHudLineKey.DateAndTime;
         if (IsRealtimeLineVisible)             mask |= 1L << (int)MainHudLineKey.Realtime;
+        if (IsMoonPhaseLineVisible)            mask |= 1L << (int)MainHudLineKey.MoonPhase;
         if (IsWindLineVisible)                 mask |= 1L << (int)MainHudLineKey.Wind;
         if (IsRainfallLineVisible)             mask |= 1L << (int)MainHudLineKey.Rainfall;
         if (IsIntoxicationLineVisible)         mask |= 1L << (int)MainHudLineKey.Intoxication;
@@ -313,6 +314,14 @@ internal sealed class MainHudViewModel
 
     public bool IsRealtimeLineVisible => _settings.Time.ShowRealtime;
 
+    /// <summary>
+    /// Moon-phase line is visible whenever the setting is on. Unlike the
+    /// intoxication or body-temperature lines there's no "not relevant" state
+    /// to gate on — the calendar always has a current lunar phase — so the
+    /// setting alone decides visibility.
+    /// </summary>
+    public bool IsMoonPhaseLineVisible => _settings.Time.ShowMoonPhase;
+
     public bool IsWindLineVisible => _settings.Weather.Wind != WindDisplay.Hidden;
 
     public bool IsRainfallLineVisible => _settings.Weather.ShowRainfall;
@@ -355,6 +364,7 @@ internal sealed class MainHudViewModel
         && !IsApparentTemperatureLineVisible
         && !IsDateAndTimeLineVisible
         && !IsRealtimeLineVisible
+        && !IsMoonPhaseLineVisible
         && !IsWindLineVisible
         && !IsRainfallLineVisible
         && !IsIntoxicationLineVisible
@@ -547,6 +557,22 @@ internal sealed class MainHudViewModel
         }
     }
 
+    /// <summary>
+    /// Formatted moon-phase line (e.g. "Moon: Waxing Gibbous"), or null when
+    /// hidden. The phase name comes from the calendar snapshot's
+    /// <see cref="CalendarSnapshot.MoonPhaseKey"/> (a canonical astronomical
+    /// key mapped from VS's <c>EnumMoonPhase</c> in the calendar service).
+    /// </summary>
+    public string? MoonPhaseText
+    {
+        get
+        {
+            if (!IsMoonPhaseLineVisible) return null;
+            string label = _translate(LangKeys.Hud.MoonPhaseStem + _calendarSnapshot.MoonPhaseKey);
+            return _translateFormat(LangKeys.Hud.MoonPhasePrefix, label);
+        }
+    }
+
     /// <summary>Formatted wind speed line, or null when hidden.</summary>
     public string? WindText
     {
@@ -645,6 +671,7 @@ internal sealed class MainHudViewModel
         if (IsApparentTemperatureLineVisible)  yield return MainHudLineKey.ApparentTemperature;
         if (IsDateAndTimeLineVisible)          yield return MainHudLineKey.DateAndTime;
         if (IsRealtimeLineVisible)             yield return MainHudLineKey.Realtime;
+        if (IsMoonPhaseLineVisible)            yield return MainHudLineKey.MoonPhase;
         if (IsWindLineVisible)                 yield return MainHudLineKey.Wind;
         if (IsRainfallLineVisible)             yield return MainHudLineKey.Rainfall;
         if (IsIntoxicationLineVisible)         yield return MainHudLineKey.Intoxication;
@@ -660,6 +687,7 @@ internal sealed class MainHudViewModel
         MainHudLineKey.ApparentTemperature  => ApparentTemperatureText,
         MainHudLineKey.DateAndTime          => DateAndTimeText,
         MainHudLineKey.Realtime             => RealtimeText,
+        MainHudLineKey.MoonPhase            => MoonPhaseText,
         MainHudLineKey.Wind                 => WindText,
         MainHudLineKey.Rainfall             => RainfallText,
         MainHudLineKey.Intoxication         => IntoxicationText,

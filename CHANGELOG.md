@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026/06/08
+
+### Added
+
+- **Moon phase line.** Optional new HUD line showing the current lunar phase
+  (New Moon, Waxing Crescent, First Quarter, Waxing Gibbous, Full Moon, Waning
+  Gibbous, Third Quarter, Waning Crescent), read directly from VS's
+  `IGameCalendar.MoonPhase`. Off by default; toggle in the Time & Date section.
+  Useful for tracking events tied to specific phases — especially when overcast
+  weather or dense biomes hide the sky. English shipped; other locales (es-es,
+  es-419, de, ko, fr, it, ja, pl, pt-br, pt-pt, ru, uk) need translator updates
+  for `moon-phase-prefix`, the eight `moon-phase-*` phase names, and
+  `settings-show-moon-phase`.
+
 ## [4.3.3] - 2026/06/08
 
 ### Added
@@ -155,11 +169,13 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.3.3...HEAD
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.4.0...HEAD
+[4.4.0]: https://github.com/Elocrypt/HudClock/compare/v4.3.3...v4.4.0
 [4.3.3]: https://github.com/Elocrypt/HudClock/compare/v4.3.2...v4.3.3
 [4.3.2]: https://github.com/Elocrypt/HudClock/compare/v4.3.1...v4.3.2
 [4.3.1]: https://github.com/Elocrypt/HudClock/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/Elocrypt/HudClock/compare/v4.2.3...v4.3.0
+[4.4.0]: htpps://github.com/Elocrypt/HudClock/releases/tag/v4.4.0
 [4.3.3]: htpps://github.com/Elocrypt/HudClock/releases/tag/v4.3.3
 [4.3.2]: htpps://github.com/Elocrypt/HudClock/releases/tag/v4.3.2
 [4.3.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.3.1

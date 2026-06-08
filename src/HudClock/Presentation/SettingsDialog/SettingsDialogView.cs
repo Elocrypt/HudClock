@@ -142,6 +142,8 @@ internal sealed class SettingsDialogView : GuiDialog
                 _settings.Time.ShowTime, v => _settings.Time.ShowTime = v);
             yy = AddSwitch(c, yy, LangKeys.Settings.ShowRealtime, "realtime",
                 _settings.Time.ShowRealtime, v => _settings.Time.ShowRealtime = v);
+            yy = AddSwitch(c, yy, LangKeys.Settings.ShowMoonPhase, "moon-phase",
+                _settings.Time.ShowMoonPhase, v => _settings.Time.ShowMoonPhase = v);
             yy = AddDropDown(c, yy, LangKeys.Settings.TimeFormat,
                 Enum.GetNames(typeof(TimeFormat)),
                 TimeFormatLocales(),
