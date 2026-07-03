@@ -61,4 +61,12 @@ internal static class EnumLangKeys
 		IconTheme.Custom  => "custom",
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
     };
+
+    public static string ToKeySuffix(this HudTextColor value) => value switch
+    {
+        HudTextColor.White => "white",
+        HudTextColor.Dim   => "dim",
+        HudTextColor.Black => "black",
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+    };
 }

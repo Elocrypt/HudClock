@@ -73,6 +73,7 @@ internal sealed class MainHudViewModel
     private float? _bodyTemperatureCelsius;
     private float? _intoxication;
     private float _rainfall;
+    private float _areaRainfall;
     private string? _apparentTempCategory;
     private float? _apparentTemperatureCelsius;
 
@@ -92,6 +93,7 @@ internal sealed class MainHudViewModel
     // cache. Without this, toggling Modern/Classic in settings wouldn't
     // take effect until the next season or room transition.
     private IconTheme? _lastBakedTheme;
+    private HudTextColor? _lastBakedTextColor;
     // Bitmask of MainHudLineKey values that were laid out by the last
     // Rebuild. Some lines (intoxication, apparent temperature) appear/
     // disappear without any settings change — when that happens, the
@@ -160,6 +162,7 @@ internal sealed class MainHudViewModel
         _bodyTemperatureCelsius = _settings.PlayerStats.ShowBodyTemperature ? _playerStats.BodyTemperatureCelsius : null;
         _intoxication = _settings.PlayerStats.ShowIntoxication ? _playerStats.Intoxication : null;
         _rainfall = _settings.Weather.ShowRainfall ? _weather.GetRainfall(pos) : 0f;
+        _areaRainfall = _settings.Weather.ShowAreaRainfall ? _weather.GetAreaRainfall(pos) : 0f;
 
         // The apparent-temperature category drives two things:
         //   1. As the immersive-temperature detection signal — its presence
@@ -194,6 +197,10 @@ internal sealed class MainHudViewModel
         _lastBakedSeason != _season
         || _lastBakedRoomStatus != _roomStatus
         || _lastBakedTheme != _settings.Appearance.IconTheme
+        // Line color is baked into each dynamic-text element's font at Compose,
+        // so a change needs a full Rebuild just like an icon swap — UpdateTexts
+        // only replaces the string, not the font.
+        || _lastBakedTextColor != _settings.Appearance.HudTextColor
         || _lastBakedLineSetMask != ComputeVisibleLineSetMask();
 
     /// <summary>
@@ -206,6 +213,7 @@ internal sealed class MainHudViewModel
         _lastBakedSeason = _season;
         _lastBakedRoomStatus = _roomStatus;
         _lastBakedTheme = _settings.Appearance.IconTheme;
+        _lastBakedTextColor = _settings.Appearance.HudTextColor;
         _lastBakedLineSetMask = ComputeVisibleLineSetMask();
     }
 
@@ -216,14 +224,15 @@ internal sealed class MainHudViewModel
     private long ComputeVisibleLineSetMask()
     {
         long mask = 0;
-        if (IsSeasonAndTemperatureLineVisible) mask |= 1L << (int)MainHudLineKey.SeasonAndTemperature;
-        if (IsBodyTemperatureLineVisible)      mask |= 1L << (int)MainHudLineKey.BodyTemperature;
-        if (IsApparentTemperatureLineVisible)  mask |= 1L << (int)MainHudLineKey.ApparentTemperature;
         if (IsDateAndTimeLineVisible)          mask |= 1L << (int)MainHudLineKey.DateAndTime;
         if (IsRealtimeLineVisible)             mask |= 1L << (int)MainHudLineKey.Realtime;
         if (IsMoonPhaseLineVisible)            mask |= 1L << (int)MainHudLineKey.MoonPhase;
-        if (IsWindLineVisible)                 mask |= 1L << (int)MainHudLineKey.Wind;
+        if (IsSeasonAndTemperatureLineVisible) mask |= 1L << (int)MainHudLineKey.SeasonAndTemperature;
+        if (IsBodyTemperatureLineVisible)      mask |= 1L << (int)MainHudLineKey.BodyTemperature;
+        if (IsApparentTemperatureLineVisible)  mask |= 1L << (int)MainHudLineKey.ApparentTemperature;
+        if (IsAreaRainfallLineVisible)         mask |= 1L << (int)MainHudLineKey.AreaRainfall;
         if (IsRainfallLineVisible)             mask |= 1L << (int)MainHudLineKey.Rainfall;
+        if (IsWindLineVisible)                 mask |= 1L << (int)MainHudLineKey.Wind;
         if (IsIntoxicationLineVisible)         mask |= 1L << (int)MainHudLineKey.Intoxication;
         if (IsRiftLineVisible)                 mask |= 1L << (int)MainHudLineKey.Rift;
         if (IsOnlinePlayersLineVisible)        mask |= 1L << (int)MainHudLineKey.OnlinePlayers;
@@ -327,6 +336,13 @@ internal sealed class MainHudViewModel
     public bool IsRainfallLineVisible => _settings.Weather.ShowRainfall;
 
     /// <summary>
+    /// Area-rainfall line is visible whenever the setting is on — the biome
+    /// always has a baseline rainfall, so there's no "not relevant" state to
+    /// gate on.
+    /// </summary>
+    public bool IsAreaRainfallLineVisible => _settings.Weather.ShowAreaRainfall;
+
+    /// <summary>
     /// Intoxication line is visible only when the setting is on <i>and</i> the
     /// player is actually intoxicated. Hidden at zero matches Status HUD
     /// Continued's UX — the line would otherwise show "0%" for most of a
@@ -367,6 +383,7 @@ internal sealed class MainHudViewModel
         && !IsMoonPhaseLineVisible
         && !IsWindLineVisible
         && !IsRainfallLineVisible
+        && !IsAreaRainfallLineVisible
         && !IsIntoxicationLineVisible
         && !IsRiftLineVisible
         && !IsOnlinePlayersLineVisible
@@ -374,7 +391,14 @@ internal sealed class MainHudViewModel
 
     // --- Line content. Null when the corresponding line is hidden. ---
 
-    /// <summary>Formatted season and/or temperature line, or null when hidden.</summary>
+    /// <summary>
+    /// Formatted season and/or temperature line, or null when hidden. When the
+    /// temperature is shown the line is prefixed "Outside Temperature:" to
+    /// mirror the vanilla Environment dialog (with the season riding along in
+    /// front of the temperature, e.g. "Outside Temperature: Summer, 26.3 °C").
+    /// A season-only line carries no prefix — without a temperature it isn't a
+    /// temperature line.
+    /// </summary>
     public string? SeasonAndTemperatureText
     {
         get
@@ -384,10 +408,12 @@ internal sealed class MainHudViewModel
             if (!showSeason && !showTemp) return null;
 
             if (showSeason && showTemp)
-                return $"{SeasonName()}, {TemperatureString(_temperatureCelsius)}";
-            if (showSeason)
-                return SeasonName();
-            return TemperatureString(_temperatureCelsius);
+                return _translateFormat(LangKeys.Hud.OutsideTemperaturePrefix,
+                    $"{SeasonName()}, {TemperatureString(_temperatureCelsius)}");
+            if (showTemp)
+                return _translateFormat(LangKeys.Hud.OutsideTemperaturePrefix,
+                    TemperatureString(_temperatureCelsius));
+            return SeasonName();
         }
     }
 
@@ -493,9 +519,12 @@ internal sealed class MainHudViewModel
     }
 
     /// <summary>
-    /// Formatted rainfall line (e.g. "Rainfall: Moderate"), or null when
-    /// the line is disabled. Maps the normalized [0, 1] rainfall value to
-    /// the same discrete labels the vanilla Environment dialog uses.
+    /// Formatted <i>current</i> rainfall line (e.g. "Current Rainfall:
+    /// Moderate"), or null when the line is disabled. Reflects how hard it is
+    /// precipitating right now, mapped to HUD Clock's own intensity buckets.
+    /// The "Current Rainfall" wording lives in the lang files (the
+    /// <c>rainfall-prefix</c> key) so it stays distinct from the area-rainfall
+    /// line below.
     /// </summary>
     public string? RainfallText
     {
@@ -521,7 +550,31 @@ internal sealed class MainHudViewModel
         return "veryhigh";
     }
 
-    /// <summary>Formatted date and/or time line, or null when hidden.</summary>
+    /// <summary>
+    /// Formatted <i>area</i> rainfall line (e.g. "Rainfall in this Area:
+    /// Common"), or null when hidden. Mirrors the vanilla Environment dialog:
+    /// the biome's baseline rainfall mapped to a vanilla <c>freq-*</c>
+    /// descriptor (which we reuse directly, so the word is localized by the
+    /// base game in every language).
+    /// </summary>
+    public string? AreaRainfallText
+    {
+        get
+        {
+            if (!IsAreaRainfallLineVisible) return null;
+            // The freq-* keys live in the game's own lang domain (no
+            // "hudclock:" prefix), so translating them defers to vanilla.
+            string label = _translate(LangKeys.Hud.FreqStem + RainfallFrequency.KeySuffix(_areaRainfall));
+            return _translateFormat(LangKeys.Hud.AreaRainfallPrefix, label);
+        }
+    }
+
+    /// <summary>
+    /// Formatted date and/or time line, or null when hidden. When the date is
+    /// shown the line is prefixed "Date:" to mirror the vanilla Environment
+    /// dialog (e.g. "Date: 2. September, Year 5 03:47"). A time-only line
+    /// carries no prefix.
+    /// </summary>
     public string? DateAndTimeText
     {
         get
@@ -538,8 +591,8 @@ internal sealed class MainHudViewModel
 
             string time = _timeFormatter.Format(_calendarSnapshot.Hour, _calendarSnapshot.Minute);
 
-            if (showDate && showTime) return $"{date} {time}";
-            if (showDate) return date;
+            if (showDate && showTime) return _translateFormat(LangKeys.Hud.DatePrefix, $"{date} {time}");
+            if (showDate) return _translateFormat(LangKeys.Hud.DatePrefix, date);
             return time;
         }
     }
@@ -632,6 +685,13 @@ internal sealed class MainHudViewModel
     /// </summary>
     public IconTheme CurrentIconTheme => _settings.Appearance.IconTheme;
 
+    /// <summary>
+    /// Text color for the main HUD's lines, baked into each line's font at
+    /// Rebuild time. A change is picked up via <see cref="HasVisibleIconChanged"/>,
+    /// which forces a full re-compose rather than a text-only refresh.
+    /// </summary>
+    public HudTextColor CurrentTextColor => _settings.Appearance.HudTextColor;
+
     /// <summary>Season icon key (for the large background image in the HUD).</summary>
     public string? SeasonIconPath => _season switch
     {
@@ -666,14 +726,15 @@ internal sealed class MainHudViewModel
     /// </remarks>
     public IEnumerable<MainHudLineKey> VisibleLineKeys()
     {
-        if (IsSeasonAndTemperatureLineVisible) yield return MainHudLineKey.SeasonAndTemperature;
-        if (IsBodyTemperatureLineVisible)      yield return MainHudLineKey.BodyTemperature;
-        if (IsApparentTemperatureLineVisible)  yield return MainHudLineKey.ApparentTemperature;
         if (IsDateAndTimeLineVisible)          yield return MainHudLineKey.DateAndTime;
         if (IsRealtimeLineVisible)             yield return MainHudLineKey.Realtime;
         if (IsMoonPhaseLineVisible)            yield return MainHudLineKey.MoonPhase;
-        if (IsWindLineVisible)                 yield return MainHudLineKey.Wind;
+        if (IsSeasonAndTemperatureLineVisible) yield return MainHudLineKey.SeasonAndTemperature;
+        if (IsBodyTemperatureLineVisible)      yield return MainHudLineKey.BodyTemperature;
+        if (IsApparentTemperatureLineVisible)  yield return MainHudLineKey.ApparentTemperature;
+        if (IsAreaRainfallLineVisible)         yield return MainHudLineKey.AreaRainfall;
         if (IsRainfallLineVisible)             yield return MainHudLineKey.Rainfall;
+        if (IsWindLineVisible)                 yield return MainHudLineKey.Wind;
         if (IsIntoxicationLineVisible)         yield return MainHudLineKey.Intoxication;
         if (IsRiftLineVisible)                 yield return MainHudLineKey.Rift;
         if (IsOnlinePlayersLineVisible)        yield return MainHudLineKey.OnlinePlayers;
@@ -685,6 +746,7 @@ internal sealed class MainHudViewModel
         MainHudLineKey.SeasonAndTemperature => SeasonAndTemperatureText,
         MainHudLineKey.BodyTemperature      => BodyTemperatureText,
         MainHudLineKey.ApparentTemperature  => ApparentTemperatureText,
+        MainHudLineKey.AreaRainfall         => AreaRainfallText,
         MainHudLineKey.DateAndTime          => DateAndTimeText,
         MainHudLineKey.Realtime             => RealtimeText,
         MainHudLineKey.MoonPhase            => MoonPhaseText,

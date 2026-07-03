@@ -17,7 +17,22 @@ internal static class LangKeys
     {
         /// <summary>Format: day-of-month, month-name, year. Example: <c>"{0}. {1}, Year {2}"</c>.</summary>
         public const string Date           = "hudclock:date";
+
+        /// <summary>
+        /// Wraps the assembled date/time line. Format: "Date: {0}". Applied
+        /// only when the date is shown, to mirror the vanilla Environment
+        /// dialog.
+        /// </summary>
+        public const string DatePrefix     = "hudclock:date-prefix";
+
         public const string RealtimePrefix = "hudclock:realtime-prefix";
+
+        /// <summary>
+        /// Wraps the season/temperature line as "Outside Temperature: {0}" to
+        /// mirror the vanilla Environment dialog. Applied only when the
+        /// temperature is shown.
+        /// </summary>
+        public const string OutsideTemperaturePrefix = "hudclock:outside-temperature-prefix";
 
         /// <summary>Format: "{0} °C".</summary>
         public const string TemperatureCelsius    = "hudclock:temperature-celsius";
@@ -81,11 +96,24 @@ internal static class LangKeys
         /// <summary>Format: "Intoxication: {0}%" — {0} is an integer 1..100.</summary>
         public const string Intoxication = "hudclock:intoxication";
 
-        /// <summary>Format: "Rainfall: {0}" where {0} is a localized bucket label.</summary>
+        /// <summary>Format: "Current Rainfall: {0}" where {0} is a localized bucket label.</summary>
         public const string RainfallPrefix = "hudclock:rainfall-prefix";
 
         /// <summary>Stem for rainfall buckets: + "rare" / "light" / "moderate" / "high" / "veryhigh".</summary>
         public const string RainfallStem = "hudclock:rainfall-";
+
+        /// <summary>Format: "Rainfall in this Area: {0}" — mirrors the vanilla Environment dialog.</summary>
+        public const string AreaRainfallPrefix = "hudclock:area-rainfall-prefix";
+
+        /// <summary>
+        /// Stem for the <b>vanilla</b> rainfall-frequency descriptors:
+        /// + "veryrare" / "rarely" / "uncommon" / "common" / "verycommon" /
+        /// "allthetime". Deliberately has no "hudclock:" domain prefix — these
+        /// keys belong to the base game, so reusing them gives us the game's
+        /// own localized words for free (matching the Environment dialog
+        /// exactly). See <see cref="HudClock.Domain.Weather.RainfallFrequency"/>.
+        /// </summary>
+        public const string FreqStem = "freq-";
 
         /// <summary>Format: "Players online: {0}".</summary>
         public const string OnlinePlayers = "hudclock:online-players";
@@ -150,6 +178,7 @@ internal static class LangKeys
         public const string ShowTemperature        = "hudclock:settings-show-temperature";
         public const string Fahrenheit             = "hudclock:settings-fahrenheit";
         public const string ShowRainfall           = "hudclock:settings-show-rainfall";
+        public const string ShowAreaRainfall       = "hudclock:settings-show-area-rainfall";
         public const string ShowDate               = "hudclock:settings-show-date";
         public const string ShowTime               = "hudclock:settings-show-time";
         public const string ShowRealtime           = "hudclock:settings-show-realtime";
@@ -165,6 +194,7 @@ internal static class LangKeys
         // Dropdown labels.
         public const string HudPosition = "hudclock:settings-hud-position";
         public const string IconTheme   = "hudclock:settings-icon-theme";
+        public const string HudTextColor = "hudclock:settings-hud-text-color";
         public const string TimeFormat  = "hudclock:settings-time-format";
         public const string Wind        = "hudclock:settings-wind";
         public const string StormDialog = "hudclock:settings-storm";
@@ -175,6 +205,7 @@ internal static class LangKeys
         // from EnumLangKeys, which is why these look incomplete on their own.
         public const string HudPositionStem = "hudclock:settings-hud-position-";
         public const string IconThemeStem   = "hudclock:settings-icon-theme-";
+        public const string HudTextColorStem = "hudclock:settings-hud-text-color-";
         public const string TimeFormatStem  = "hudclock:settings-time-format-";
         public const string WindStem        = "hudclock:settings-wind-";
         public const string StormStem       = "hudclock:settings-storm-";

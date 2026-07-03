@@ -121,5 +121,13 @@
   "hudclock:apparent-temperature-state-cold": "Холодно",
   "hudclock:apparent-temperature-state-freezing": "Морозно",
   "hudclock:apparent-temperature-state-warm": "Тепло",
-  "hudclock:apparent-temperature-state-hot": "Жарко"
+  "hudclock:apparent-temperature-state-hot": "Жарко",
+  "hudclock:date-prefix": "Дата: {0}",
+  "hudclock:outside-temperature-prefix": "Температура снаружи: {0}",
+  "hudclock:area-rainfall-prefix": "Осадки в этой области: {0}",
+  "hudclock:settings-show-area-rainfall": "Показывать осадки в области",
+  "hudclock:settings-hud-text-color": "Цвет текста",
+  "hudclock:settings-hud-text-color-white": "Белый",
+  "hudclock:settings-hud-text-color-dim": "Тусклый",
+  "hudclock:settings-hud-text-color-black": "Чёрный"
 }

@@ -1,10 +1,28 @@
 # Changelog
-
+<!-- markdownlint-disable MD024 -->
 All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [4.4.1] - 2026/07/03
+
+Release: [4.4.1-tag]
+
+### Added
+
+- New optional "Rainfall in this Area" HUD line mirroring the vanilla Environment dialog (biome baseline rainfall). Reuses the game's own `freq-*` descriptors, so it localizes automatically.
+- Scrollable settings dialog — long settings lists no longer run off-screen at small resolutions or large GUI scales.
+
+### Changed
+
+- Main HUD lines reordered and relabeled to match the vanilla Environment panel: `Date:`, `Outside Temperature:`, `Rainfall in this Area:`, `Current Rift activity:`. The existing rainfall line is now labeled `Current Rainfall`.
+- Locale note: English strings shipped; the new label keys still need a translator pass across the 12 non-English locales.
+
 ## [4.4.0] - 2026/06/08
+
+Release: [4.4.0-tag]
 
 ### Added
 
@@ -19,6 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `settings-show-moon-phase`.
 
 ## [4.3.3] - 2026/06/08
+
+Release: [4.3.3-tag]
 
 ### Added
 
@@ -39,6 +59,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [4.3.2] - 2026/06/04
 
+Release: [4.3.2-tag]
+
 ### Fixed
 
 - Season icon and label now derive from the calendar month rather than VS's
@@ -54,6 +76,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [4.3.1] - 2026/05/10
 
+Release: [4.3.1-tag]
+
 ### Fixed
 
 - **HudShelf outline placement.** The `GetBounds` callbacks registered with
@@ -65,6 +89,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   at the panel boundary.
 
 ## [4.3.0] - 2026/05/03
+
+Release: [4.3.0-tag]
 
 ### Added
 
@@ -79,6 +105,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [4.2.3] - 2026/04/30
 
+Release: [4.2.3-tag]
+
 ### Added
 
 - **Compatibility with [Immersive Body Temperature](https://mods.vintagestory.at/immersivebodytemperature) by Cer0** and any other temperature mod following the new vendor-neutral integration contract documented in [`docs/integration.md`](docs/integration.md). When such a mod is detected, HUD Clock extends the body-temperature line into the warm half of the range — `warm` above normal, `HOT` at or above the heatstroke-damage threshold (`normal + 4`, mirroring the existing freezing threshold). Vanilla behaviour is unchanged; the warm-half display is gated on the mod's signal so vanilla players don't suddenly see a permanent "warm (+4.0 °C)" line from the spawn-default body temperature.
@@ -92,6 +120,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [4.2.2] - 2026/04/30
 
+Release: [4.2.2-tag]
+
 ### Added
 
 - **Custom icon theme.** A third option in the icon-theme dropdown alongside Modern and Classic. Selects textures from `assets/hudclock/textures/hud/custom/` (named `spring.png`, `summer.png`, `fall.png`, `winter.png`, `tempstorm.png`) and `assets/hudclock/textures/room/custom/` (named `room.png`, `cellar.png`, `greenhouse.png`). Mod ships transparent placeholders so the HUD layout still renders cleanly when no override is present; users override individual textures by either dropping PNGs directly into the mod's asset folders or — recommended — shipping a standard Vintage Story texture pack that overrides the same paths. No external dependencies, no extra libraries.
@@ -99,11 +129,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [4.2.1] - 2026/04/25
 
+Release: [4.2.1-tag]
+
 ### Fixed
 
 - HUD layout now dynamically adjusts the season icon size based on the selected theme. The layout builder correctly allocates 200px for the Modern theme and 100px for the Classic theme, resolving an issue where the Classic theme was forced into a hardcoded 200px bound.
 
 ## [4.2.0] - 2026/04/25
+
+Release: [4.2.0-tag]
 
 ### Added
 
@@ -122,6 +156,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Intoxication line no longer requires the settings dialog to be opened and closed before showing or hiding when intoxication crosses zero. The HUD now detects when the set of visible lines changes between ticks and triggers a rebuild automatically.
 
 ## [4.1.0] - 2026/04/24
+
+Release: [4.1.0-tag]
 
 ### Added
 
@@ -169,19 +205,26 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.4.0...HEAD
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.4.1...HEAD
+[4.4.1]: https://github.com/Elocrypt/HudClock/compare/v4.4.0...v4.4.1
 [4.4.0]: https://github.com/Elocrypt/HudClock/compare/v4.3.3...v4.4.0
 [4.3.3]: https://github.com/Elocrypt/HudClock/compare/v4.3.2...v4.3.3
 [4.3.2]: https://github.com/Elocrypt/HudClock/compare/v4.3.1...v4.3.2
 [4.3.1]: https://github.com/Elocrypt/HudClock/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/Elocrypt/HudClock/compare/v4.2.3...v4.3.0
-[4.4.0]: htpps://github.com/Elocrypt/HudClock/releases/tag/v4.4.0
-[4.3.3]: htpps://github.com/Elocrypt/HudClock/releases/tag/v4.3.3
-[4.3.2]: htpps://github.com/Elocrypt/HudClock/releases/tag/v4.3.2
-[4.3.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.3.1
-[4.2.3]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.3
-[4.2.2]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.2
-[4.2.1]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.1
-[4.2.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.0
-[4.1.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.1.0
+[4.2.3]: https://github.com/Elocrypt/HudClock/compare/v4.2.2...v4.2.3
+[4.2.2]: https://github.com/Elocrypt/HudClock/compare/v4.2.1...v4.2.2
+[4.2.1]: https://github.com/Elocrypt/HudClock/compare/v4.2.0...v4.2.1
+[4.2.0]: https://github.com/Elocrypt/HudClock/compare/v4.1.0...v4.2.0
+[4.1.0]: https://github.com/Elocrypt/HudClock/compare/v4.0.0...v4.1.0
+[4.4.1-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.4.1
+[4.4.0-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.4.0
+[4.3.3-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.3.3
+[4.3.2-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.3.2
+[4.3.1-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.3.1
+[4.2.3-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.3
+[4.2.2-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.2
+[4.2.1-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.1
+[4.2.0-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.2.0
+[4.1.0-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.1.0
 [4.0.0]: https://github.com/Elocrypt/HudClock/releases/tag/v4.0.0

@@ -22,9 +22,17 @@ internal sealed class WeatherOptions
     public WindDisplay Wind { get; set; } = WindDisplay.BeaufortText;
 
     /// <summary>
-    /// Show normalized rainfall at the player position, mapped to the same
-    /// labels the vanilla Environment dialog uses (Rare, Light, Moderate, etc.).
-    /// Off by default; players who don't farm rarely care about precipitation.
+    /// Show the <i>current</i> precipitation level at the player position (how
+    /// hard it is raining right now), labelled "Current Rainfall". Off by
+    /// default. Distinct from <see cref="ShowAreaRainfall"/>.
     /// </summary>
     public bool ShowRainfall { get; set; }
+
+    /// <summary>
+    /// Show the <i>area</i> (world-generation) rainfall — the biome's baseline
+    /// wetness — using the same wording the vanilla Environment dialog uses
+    /// ("Rainfall in this Area", with the vanilla freq-* descriptors). Off by
+    /// default.
+    /// </summary>
+    public bool ShowAreaRainfall { get; set; }
 }

@@ -1,5 +1,6 @@
 using System;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
@@ -49,6 +50,21 @@ internal sealed class WeatherService : IWeatherService
     public float GetRainfall(BlockPos pos)
     {
         if (pos is null) throw new ArgumentNullException(nameof(pos));
+        // Default (no mode) overload returns NowValues — the current
+        // precipitation level, which is what we want for "Current Rainfall".
         return _api.World.BlockAccessor.GetClimateAt(pos).Rainfall;
+    }
+
+    /// <inheritdoc />
+    public float GetAreaRainfall(BlockPos pos)
+    {
+        if (pos is null) throw new ArgumentNullException(nameof(pos));
+        // WorldGenValues gives the biome's baseline rainfall, independent of
+        // the current weather. This is what the vanilla Environment dialog's
+        // "Rainfall in this Area" line reads (and what vssurvivalmod uses for
+        // fruit-tree / worm-density baselines).
+        ClimateCondition? climate =
+            _api.World.BlockAccessor.GetClimateAt(pos, EnumGetClimateMode.WorldGenValues);
+        return climate?.Rainfall ?? 0f;
     }
 }

@@ -140,11 +140,14 @@ internal sealed class MainHudView : HudElement
 
         // One AddDynamicText per visible line, named by the line key so we can
         // look them up by name in UpdateTexts without maintaining a parallel list.
+        // The font (and thus color) is baked in here at Compose; changing the
+        // color setting triggers a Rebuild via the viewmodel's change-detection.
+        CairoFont lineFont = HudFonts.Line(_viewModel.CurrentTextColor);
         foreach (KeyValuePair<MainHudLineKey, ElementBounds> kvp in lineBoundsByKey)
         {
             composer.AddDynamicText(
                 string.Empty,
-                CairoFont.WhiteDetailText(),
+                lineFont,
                 kvp.Value,
                 LineKeyToElementName(kvp.Key));
         }
