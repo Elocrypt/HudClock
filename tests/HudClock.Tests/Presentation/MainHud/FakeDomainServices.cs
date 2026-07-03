@@ -27,9 +27,11 @@ internal sealed class FakeWeatherService : IWeatherService
     public double WindSpeed { get; set; }
     public float TemperatureCelsius { get; set; }
     public float Rainfall { get; set; }
+    public float AreaRainfall { get; set; }
     public double GetWindSpeed(BlockPos pos) => WindSpeed;
     public float GetTemperatureCelsius(BlockPos pos) => TemperatureCelsius;
     public float GetRainfall(BlockPos pos) => Rainfall;
+    public float GetAreaRainfall(BlockPos pos) => AreaRainfall;
 }
 
 internal sealed class FakeRiftService : IRiftService

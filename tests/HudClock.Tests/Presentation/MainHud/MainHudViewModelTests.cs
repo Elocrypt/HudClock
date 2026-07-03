@@ -164,9 +164,9 @@ public class MainHudViewModelTests
 
         var expected = new[]
         {
-            MainHudLineKey.SeasonAndTemperature,
             MainHudLineKey.DateAndTime,
             MainHudLineKey.Realtime,
+            MainHudLineKey.SeasonAndTemperature,
             MainHudLineKey.Wind,
             MainHudLineKey.Rift,
             MainHudLineKey.OnlinePlayers,
@@ -685,6 +685,127 @@ public class MainHudViewModelTests
 
         Assert.NotNull(vm.RainfallText);
         Assert.Contains("rainfall-" + expectedBucketStem, vm.RainfallText);
+    }
+
+    // --- Area rainfall (mirrors the vanilla Environment dialog) ---
+
+    [Fact]
+    public void Area_rainfall_hidden_when_setting_off()
+    {
+        var settings = new HudClockSettings();
+        settings.Weather.ShowAreaRainfall = false;
+        var weather = new FakeWeatherService { AreaRainfall = 0.5f };
+
+        var vm = MakeVm(settings: settings, weather: weather);
+
+        Assert.Null(vm.AreaRainfallText);
+        Assert.False(vm.IsAreaRainfallLineVisible);
+    }
+
+    [Theory]
+    [InlineData(0.00f, "veryrare")]
+    [InlineData(0.14f, "veryrare")]
+    [InlineData(0.15f, "rarely")]
+    [InlineData(0.29f, "rarely")]
+    [InlineData(0.30f, "uncommon")]
+    [InlineData(0.44f, "uncommon")]
+    [InlineData(0.45f, "common")]
+    [InlineData(0.69f, "common")]
+    [InlineData(0.70f, "verycommon")]
+    [InlineData(0.89f, "verycommon")]
+    [InlineData(0.90f, "allthetime")]
+    [InlineData(1.00f, "allthetime")]
+    public void Area_rainfall_uses_vanilla_freq_keys_at_thresholds(float value, string expectedFreqSuffix)
+    {
+        // The area-rainfall line reuses the base game's freq-* descriptor keys
+        // (no "hudclock:" prefix) so the word is localized by vanilla. The
+        // identity translator returns the key, so the freq-* key appears
+        // verbatim in the output.
+        var settings = new HudClockSettings();
+        settings.Weather.ShowAreaRainfall = true;
+        var weather = new FakeWeatherService { AreaRainfall = value };
+
+        var vm = MakeVm(settings: settings, weather: weather);
+
+        Assert.NotNull(vm.AreaRainfallText);
+        Assert.Contains("freq-" + expectedFreqSuffix, vm.AreaRainfallText);
+        Assert.Contains("area-rainfall-prefix", vm.AreaRainfallText);
+    }
+
+    [Fact]
+    public void Area_rainfall_appears_before_current_rainfall_in_order()
+    {
+        var settings = new HudClockSettings();
+        settings.Weather.ShowSeason = false;
+        settings.Weather.ShowTemperature = false;
+        settings.Weather.Wind = WindDisplay.Hidden;
+        settings.Time.ShowDate = false;
+        settings.Time.ShowTime = false;
+        settings.Rift.Display = RiftDisplay.Hidden;
+        settings.Weather.ShowAreaRainfall = true;
+        settings.Weather.ShowRainfall = true;
+
+        var vm = MakeVm(settings: settings);
+
+        var expected = new[]
+        {
+            MainHudLineKey.AreaRainfall,
+            MainHudLineKey.Rainfall,
+        };
+        Assert.Equal(expected, new List<MainHudLineKey>(vm.VisibleLineKeys()));
+    }
+
+    // --- Vanilla-Environment relabels ---
+
+    [Fact]
+    public void Temperature_line_is_prefixed_outside_temperature()
+    {
+        var settings = new HudClockSettings();
+        settings.Weather.ShowSeason = false;
+        settings.Weather.ShowTemperature = true;
+        var weather = new FakeWeatherService { TemperatureCelsius = 20f };
+
+        var vm = MakeVm(settings: settings, weather: weather);
+
+        Assert.Contains("outside-temperature-prefix", vm.SeasonAndTemperatureText);
+    }
+
+    [Fact]
+    public void Season_only_line_is_not_prefixed()
+    {
+        // Without a temperature the line isn't a temperature line, so it
+        // carries no "Outside Temperature:" prefix.
+        var settings = new HudClockSettings();
+        settings.Weather.ShowSeason = true;
+        settings.Weather.ShowTemperature = false;
+
+        var vm = MakeVm(settings: settings);
+
+        Assert.DoesNotContain("outside-temperature-prefix", vm.SeasonAndTemperatureText);
+    }
+
+    [Fact]
+    public void Date_line_is_prefixed_date_when_date_shown()
+    {
+        var settings = new HudClockSettings();
+        settings.Time.ShowDate = true;
+        settings.Time.ShowTime = false;
+
+        var vm = MakeVm(settings: settings);
+
+        Assert.Contains("date-prefix", vm.DateAndTimeText);
+    }
+
+    [Fact]
+    public void Time_only_line_is_not_prefixed()
+    {
+        var settings = new HudClockSettings();
+        settings.Time.ShowDate = false;
+        settings.Time.ShowTime = true;
+
+        var vm = MakeVm(settings: settings);
+
+        Assert.DoesNotContain("date-prefix", vm.DateAndTimeText);
     }
 
     [Fact]

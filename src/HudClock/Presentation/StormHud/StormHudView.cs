@@ -151,7 +151,7 @@ internal sealed class StormHudView : HudElement
             .CreateCompo(ToggleKeyCombinationCode, dialogBounds)
             .AddShadedDialogBG(bgBounds, withTitleBar: false, 0.0)
             .AddStaticCustomDraw(iconBounds, DrawStormIcon)
-            .AddDynamicText(string.Empty, CairoFont.WhiteDetailText(), textBounds, TextElementName)
+            .AddDynamicText(string.Empty, HudFonts.Line(_settings.Appearance.HudTextColor), textBounds, TextElementName)
             .Compose();
     }
 

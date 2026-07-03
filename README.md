@@ -33,6 +33,7 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 - Current **temperature** at the player's position, Celsius or Fahrenheit
 - **Wind speed** as either a Beaufort-scale descriptor or a percentage
 - Optional **rainfall** line using the same labels as the vanilla Environment dialog
+- Optional **Area rainfall** line showing how rainy your biome is, matching the vanilla Environment panel's "Rainfall in this Area".
 - Clean, textured icons for spring, summer, fall, and winter
 
 ### Temporal storms

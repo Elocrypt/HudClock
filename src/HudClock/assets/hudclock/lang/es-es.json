@@ -121,5 +121,13 @@
   "hudclock:apparent-temperature-state-cold": "Frío",
   "hudclock:apparent-temperature-state-freezing": "Gélido",
   "hudclock:apparent-temperature-state-warm": "Cálido",
-  "hudclock:apparent-temperature-state-hot": "Caliente"
+  "hudclock:apparent-temperature-state-hot": "Caliente",
+  "hudclock:date-prefix": "Fecha: {0}",
+  "hudclock:outside-temperature-prefix": "Temperatura exterior: {0}",
+  "hudclock:area-rainfall-prefix": "Precipitaciones en esta zona: {0}",
+  "hudclock:settings-show-area-rainfall": "Mostrar precipitaciones de la zona",
+  "hudclock:settings-hud-text-color": "Color del texto",
+  "hudclock:settings-hud-text-color-white": "Blanco",
+  "hudclock:settings-hud-text-color-dim": "Atenuado",
+  "hudclock:settings-hud-text-color-black": "Negro"
 }

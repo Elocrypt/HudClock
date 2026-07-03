@@ -66,4 +66,13 @@ public class EnumLangKeysTests
     {
         Assert.Equal(expected, ((IconTheme)raw).ToKeySuffix());
     }
+
+    [Theory]
+    [InlineData((int)HudTextColor.White, "white")]
+    [InlineData((int)HudTextColor.Dim,   "dim")]
+    [InlineData((int)HudTextColor.Black, "black")]
+    public void HudTextColor_maps_to_suffix(int raw, string expected)
+    {
+        Assert.Equal(expected, ((HudTextColor)raw).ToKeySuffix());
+    }
 }

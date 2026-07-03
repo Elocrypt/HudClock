@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HudClock.Configuration;
 using HudClock.Core;
 using HudClock.Resources;
@@ -14,30 +15,67 @@ namespace HudClock.Presentation.SettingsDialog;
 /// Multiplayer) instead of 3.x's undifferentiated two-column grid.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Fires <see cref="SettingsChanged"/> on close so other dialogs can rebuild
 /// their layouts with the updated settings. The dialog mutates
 /// <see cref="HudClockSettings"/> directly via each control's change
 /// callback — no intermediate working copy.
+/// </para>
+/// <para>
+/// The whole option stack lives inside a single scrollable
+/// <see cref="GuiElementContainer"/> (clip + vertical scrollbar) so the dialog
+/// never runs off a short display or at large GUI scale. This is the pattern
+/// VS itself uses for scrolling GUIs: every row — headers, labels, switches,
+/// dropdowns — is added to the container so they scroll together. Adding them
+/// straight to the composer instead would bake the static text into the
+/// background at compose time, leaving labels behind while only the live
+/// controls scroll.
+/// </para>
 /// </remarks>
 internal sealed class SettingsDialogView : GuiDialog
 {
-    // Horizontal layout: [ margin | label column | gap | control column | margin ]
-    private const int OuterMargin     = 20;
-    private const int LabelX          = OuterMargin + 10; // indent label under the section header
-    private const int LabelWidth      = 240;
-    private const int ColumnGap       = 20;
-    private const int ControlX        = LabelX + LabelWidth + ColumnGap;
-    private const int ControlWidth    = 240;
+    // Horizontal layout, relative to the scroll container's content box:
+    //   [ label column | gap | control column ]
+    private const int LabelX       = 0;
+    private const int LabelWidth   = 240;
+    private const int ColumnGap    = 20;
+    private const int ControlX     = LabelX + LabelWidth + ColumnGap;
+    private const int ControlWidth = 240;
+    private const int ContentWidth = ControlX + ControlWidth;
+    // Breathing room between the widest row's right edge (a dropdown ends at
+    // ContentWidth) and the clip's right edge, so the control's border isn't
+    // shaved at fractional GUI scale. Added on top of the scroll container's
+    // HalfPadding inset when sizing the inset width.
+    private const int ContentGutter = 6;
 
     // Vertical layout: sections contain rows; rows are consistent height.
     private const int SectionHeaderHeight = 28;
     private const int RowHeight           = 32;   // switch + dropdown both fit comfortably
     private const int RowGap              = 4;    // gap between rows within a section
     private const int SectionGap          = 14;   // gap between sections
-    private const int TopY                = 40;
+
+    // Never shrink the visible window below this (logical px); below it the
+    // dialog is unusable even on tiny screens.
+    private const int MinVisibleHeight = 200;
+    // Logical-pixel headroom reserved for the title bar, window padding, and a
+    // little breathing space when capping the visible height to the screen.
+    private const int VisibleHeightMargin = 120;
+
+    private const string ScrollContentKey = "hudclock-settings-scroll";
+    private const string ScrollbarKey     = "hudclock-settings-scrollbar";
 
     private readonly HudClockSettings _settings;
     private readonly ModLog _log;
+
+    // Switch elements plus their initial states. Container children aren't in
+    // the composer's flat lookup, so we hold references and apply the initial
+    // On state after composition (OnGuiOpened), mirroring the pre-scroll flow.
+    private readonly Dictionary<string, GuiElementSwitch> _switches = new();
+    private readonly Dictionary<string, bool> _switchInitial = new();
+
+    // Movable scroll container bounds + its resting Y, used by OnScroll.
+    private ElementBounds? _scrollContentBounds;
+    private double _scrollContentRestY;
 
     public SettingsDialogView(ICoreClientAPI capi, HudClockSettings settings, ModLog log) : base(capi)
     {
@@ -84,29 +122,65 @@ internal sealed class SettingsDialogView : GuiDialog
 
     private void Build()
     {
+        _switches.Clear();
+        _switchInitial.Clear();
+
         ElementBounds dialogBounds = ElementStdBounds
             .AutosizedMainDialog
-            .WithAlignment(EnumDialogArea.CenterFixed);
+            .WithAlignment(EnumDialogArea.CenterMiddle);
 
-        // Background sizes itself to fit all children. We collect child bounds in
-        // _buildChildBounds as the helpers register them, then wire them into
-        // bgBounds before Compose(). Without this wiring, VS's buildBoundsFromChildren
-        // throws "Couldn't build bounds from children", which on 1.22 manifests as a
-        // native AccessViolationException.
-        ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(10.0, 10.0);
-        bgBounds.BothSizing = ElementSizing.FitToChildren;
+        // Cap the visible window to the screen (logical px). GUIScale converts
+        // physical framebuffer pixels to the logical units ElementBounds uses.
+        float guiScale = RuntimeEnv.GUIScale;
+        if (guiScale <= 0f) guiScale = 1f;
+        int logicalScreenHeight = (int)(capi.Render.FrameHeight / guiScale);
+        int maxVisibleHeight = Math.Max(MinVisibleHeight, logicalScreenHeight - VisibleHeightMargin);
 
-        var childBounds = new System.Collections.Generic.List<ElementBounds>();
-        _buildChildBounds = childBounds;
+        // ForkContainingChild trims HalfPadding off *all four* sides of the inset,
+        // so the container's usable content box is (inset − 2·HalfPadding) wide.
+        // Rows are laid out to ContentWidth and a dropdown's right edge sits at
+        // exactly ContentWidth, so the inset must absorb that padding (plus a small
+        // gutter) or the dropdown loses its right border to the clip. GuiStyle
+        // paddings are runtime doubles, so compute the width here rather than as a
+        // const.
+        int pad = (int)GuiStyle.HalfPadding;
+        int insetWidth = ContentWidth + 2 * pad + ContentGutter;
+
+        // Inset = the visible scroll window, below the title bar. Heights are
+        // finalized after the content height is known (before Compose()).
+        ElementBounds insetBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, insetWidth, maxVisibleHeight);
+        ElementBounds scrollbarBounds = insetBounds.RightCopy().WithFixedWidth(20);
+        ElementBounds clipBounds = insetBounds.ForkContainingChild(pad, pad, pad, pad);
+        ElementBounds containerBounds = insetBounds.ForkContainingChild(pad, pad, pad, pad);
+
+        _scrollContentBounds = containerBounds;
+        _scrollContentRestY = containerBounds.fixedY;
+
+        ElementBounds bgBounds = ElementBounds.Fill
+            .WithFixedPadding(GuiStyle.ElementToDialogPadding)
+            .WithSizing(ElementSizing.FitToChildren)
+            .WithChildren(insetBounds, scrollbarBounds);
 
         GuiComposer composer = capi.Gui
             .CreateCompo(ToggleKeyCombinationCode, dialogBounds)
             .AddShadedDialogBG(bgBounds)
-            .AddDialogTitleBar(Lang.Get(LangKeys.Settings.Title), OnClose);
+            .AddDialogTitleBar(Lang.Get(LangKeys.Settings.Title), OnClose)
+            .BeginChildElements()
+                .AddInset(insetBounds, 3)
+                .BeginClip(clipBounds)
+                    .AddContainer(containerBounds, ScrollContentKey)
+                .EndClip()
+                .AddVerticalScrollbar(OnScroll, scrollbarBounds, ScrollbarKey)
+            .EndChildElements();
 
-        int y = TopY;
+        // GetContainer works once AddContainer has run; add all rows to it
+        // before Compose().
+        SingleComposer = composer;
+        GuiElementContainer container = composer.GetContainer(ScrollContentKey);
 
-        y = AddSection(composer, y, LangKeys.Settings.SectionDisplay, (c, yy) =>
+        int y = 0;
+
+        y = AddSection(container, y, LangKeys.Settings.SectionDisplay, (c, yy) =>
         {
             yy = AddDropDown(c, yy, LangKeys.Settings.HudPosition,
                 Enum.GetNames(typeof(HudAnchor)),
@@ -120,7 +194,7 @@ internal sealed class SettingsDialogView : GuiDialog
             return yy;
         });
 
-        y = AddSection(composer, y, LangKeys.Settings.SectionAppearance, (c, yy) =>
+        y = AddSection(container, y, LangKeys.Settings.SectionAppearance, (c, yy) =>
         {
             yy = AddDropDown(c, yy, LangKeys.Settings.IconTheme,
                 Enum.GetNames(typeof(IconTheme)),
@@ -128,13 +202,19 @@ internal sealed class SettingsDialogView : GuiDialog
                 (int)_settings.Appearance.IconTheme,
                 "icon-theme",
                 (code, sel) => _settings.Appearance.IconTheme = ParseEnum<IconTheme>(code));
+            yy = AddDropDown(c, yy, LangKeys.Settings.HudTextColor,
+                Enum.GetNames(typeof(HudTextColor)),
+                HudTextColorLocales(),
+                (int)_settings.Appearance.HudTextColor,
+                "hud-text-color",
+                (code, sel) => _settings.Appearance.HudTextColor = ParseEnum<HudTextColor>(code));
             yy = AddSwitch(c, yy, LangKeys.Settings.HemisphereAwareSeason, "hemisphere-season",
                 _settings.Appearance.HemisphereAwareSeason,
                 v => _settings.Appearance.HemisphereAwareSeason = v);
             return yy;
         });
 
-        y = AddSection(composer, y, LangKeys.Settings.SectionTime, (c, yy) =>
+        y = AddSection(container, y, LangKeys.Settings.SectionTime, (c, yy) =>
         {
             yy = AddSwitch(c, yy, LangKeys.Settings.ShowDate, "date",
                 _settings.Time.ShowDate, v => _settings.Time.ShowDate = v);
@@ -153,7 +233,7 @@ internal sealed class SettingsDialogView : GuiDialog
             return yy;
         });
 
-        y = AddSection(composer, y, LangKeys.Settings.SectionWeather, (c, yy) =>
+        y = AddSection(container, y, LangKeys.Settings.SectionWeather, (c, yy) =>
         {
             yy = AddSwitch(c, yy, LangKeys.Settings.ShowSeason, "season",
                 _settings.Weather.ShowSeason, v => _settings.Weather.ShowSeason = v);
@@ -163,6 +243,8 @@ internal sealed class SettingsDialogView : GuiDialog
                 _settings.Weather.Fahrenheit, v => _settings.Weather.Fahrenheit = v);
             yy = AddSwitch(c, yy, LangKeys.Settings.ShowRainfall, "rainfall",
                 _settings.Weather.ShowRainfall, v => _settings.Weather.ShowRainfall = v);
+            yy = AddSwitch(c, yy, LangKeys.Settings.ShowAreaRainfall, "area-rainfall",
+                _settings.Weather.ShowAreaRainfall, v => _settings.Weather.ShowAreaRainfall = v);
             yy = AddDropDown(c, yy, LangKeys.Settings.Wind,
                 Enum.GetNames(typeof(WindDisplay)),
                 WindLocales(),
@@ -172,7 +254,7 @@ internal sealed class SettingsDialogView : GuiDialog
             return yy;
         });
 
-        y = AddSection(composer, y, LangKeys.Settings.SectionPlayerStats, (c, yy) =>
+        y = AddSection(container, y, LangKeys.Settings.SectionPlayerStats, (c, yy) =>
         {
             yy = AddSwitch(c, yy, LangKeys.Settings.ShowBodyTemperature, "body-temp",
                 _settings.PlayerStats.ShowBodyTemperature,
@@ -191,7 +273,7 @@ internal sealed class SettingsDialogView : GuiDialog
             return yy;
         });
 
-        y = AddSection(composer, y, LangKeys.Settings.SectionEvents, (c, yy) =>
+        y = AddSection(container, y, LangKeys.Settings.SectionEvents, (c, yy) =>
         {
             yy = AddDropDown(c, yy, LangKeys.Settings.StormDialog,
                 Enum.GetNames(typeof(StormDisplay)),
@@ -214,7 +296,7 @@ internal sealed class SettingsDialogView : GuiDialog
             return yy;
         });
 
-        _ = AddSection(composer, y, LangKeys.Settings.SectionMultiplayer, (c, yy) =>
+        int contentHeight = AddSection(container, y, LangKeys.Settings.SectionMultiplayer, (c, yy) =>
         {
             yy = AddSwitch(c, yy, LangKeys.Settings.ShowOnlinePlayers, "players",
                 _settings.Multiplayer.ShowOnlinePlayerCount,
@@ -225,88 +307,110 @@ internal sealed class SettingsDialogView : GuiDialog
             return yy;
         });
 
-        // Wire every collected child bounds into bgBounds so FitToChildren can measure.
-        foreach (ElementBounds child in childBounds)
-        {
-            bgBounds.WithChild(child);
-        }
+        // Size the inset (the bordered box) to the content plus the fork's
+        // HalfPadding top+bottom, capped to the screen. The clip *viewport* is then
+        // the inset minus that padding — because ForkContainingChild both trims the
+        // clip height and offsets it down by pad, giving the clip the full inset
+        // height (as the pre-4.4.1 code did) pushed the clipped content one
+        // HalfPadding below the inset's bottom border.
+        int insetHeight = Math.Min(contentHeight + 2 * pad, maxVisibleHeight);
+        int viewportHeight = insetHeight - 2 * pad;
 
-        SingleComposer = composer.Compose();
-        _buildChildBounds = null;
+        insetBounds.fixedHeight = insetHeight;
+        clipBounds.fixedHeight = viewportHeight;
+        scrollbarBounds.fixedHeight = insetHeight;
+        // containerBounds height is (re)computed from its children during Compose
+        // by GuiElementContainer.CalcTotalHeight, so setting it here is a no-op.
+
+        composer.Compose();
+
+        // Canonical VS scrolling contract (see the wiki's DemoScrollingGui):
+        // visible = the clip viewport, total = the container's *actual* composed
+        // height. Reading the real total back (rather than our running
+        // contentHeight, which omits the container's own cell spacing) lets the
+        // scrollbar reach the very bottom row. A total <= visible disables the
+        // handle (nothing to scroll).
+        GuiElementContainer scrollContent = composer.GetContainer(ScrollContentKey);
+        float totalHeight = (float)scrollContent.Bounds.fixedHeight;
+        composer.GetScrollbar(ScrollbarKey)?.SetHeights(viewportHeight, totalHeight);
     }
 
-    // --- Layout helpers ---
-
-    // Total content width = label column + gap + control column. Used for section headers
-    // so they span both columns without introducing a layout element wider than any child.
-    private const int SectionHeaderWidth = LabelWidth + ColumnGap + ControlWidth;
-
-    private int AddSection(GuiComposer composer, int startY, string titleKey,
-        System.Func<GuiComposer, int, int> build)
+    /// <summary>
+    /// Scrollbar callback: shift the scroll container up by the scrollbar value
+    /// (relative to its resting Y) and recompute its world bounds so the
+    /// clipped content repaints at the new offset.
+    /// </summary>
+    private void OnScroll(float value)
     {
-        ElementBounds titleBounds = ElementBounds.Fixed(LabelX, startY, SectionHeaderWidth, SectionHeaderHeight);
-        composer.AddStaticText(
-            Lang.Get(titleKey),
-            CairoFont.WhiteSmallishText().WithWeight(Cairo.FontWeight.Bold),
-            titleBounds);
-        _buildChildBounds?.Add(titleBounds);
+        if (_scrollContentBounds is null) return;
+        _scrollContentBounds.fixedY = _scrollContentRestY - value;
+        _scrollContentBounds.CalcWorldBounds();
+    }
+
+    // --- Layout helpers (build rows into the scroll container) ---
+
+    private int AddSection(GuiElementContainer container, int startY, string titleKey,
+        Vintagestory.API.Common.Func<GuiElementContainer, int, int> build)
+    {
+        ElementBounds titleBounds = ElementBounds.Fixed(LabelX, startY, ContentWidth, SectionHeaderHeight);
+        container.Add(new GuiElementStaticText(capi, Lang.Get(titleKey),
+            EnumTextOrientation.Left, titleBounds,
+            CairoFont.WhiteSmallishText().WithWeight(Cairo.FontWeight.Bold)));
 
         int y = startY + SectionHeaderHeight + RowGap;
-        y = build(composer, y);
+        y = build(container, y);
         return y + SectionGap;
     }
 
-    private int AddSwitch(GuiComposer composer, int y, string labelKey, string nameSuffix,
-        bool initial, System.Action<bool> onChange)
+    private int AddSwitch(GuiElementContainer container, int y, string labelKey, string nameSuffix,
+        bool initial, Action<bool> onChange)
     {
         ElementBounds labelBounds = ElementBounds.Fixed(LabelX, y, LabelWidth, RowHeight);
-        ElementBounds controlBounds = ElementBounds.Fixed(ControlX, y + 4, ControlWidth, RowHeight - 8);
+        ElementBounds controlBounds = ElementBounds.Fixed(ControlX, y + 4, RowHeight - 8, RowHeight - 8);
 
-        composer.AddStaticText(Lang.Get(labelKey), CairoFont.WhiteSmallText(), labelBounds);
-        composer.AddSwitch(onChange, controlBounds, "switch-" + nameSuffix);
+        container.Add(new GuiElementStaticText(capi, Lang.Get(labelKey),
+            EnumTextOrientation.Left, labelBounds, CairoFont.WhiteSmallText()));
 
-        _buildChildBounds?.Add(labelBounds);
-        _buildChildBounds?.Add(controlBounds);
-
-        _pendingSwitchStates[nameSuffix] = initial;
+        var sw = new GuiElementSwitch(capi, onChange, controlBounds);
+        container.Add(sw);
+        _switches[nameSuffix] = sw;
+        _switchInitial[nameSuffix] = initial;
 
         return y + RowHeight + RowGap;
     }
 
-    private int AddDropDown(GuiComposer composer, int y, string labelKey,
+    private int AddDropDown(GuiElementContainer container, int y, string labelKey,
         string[] codes, string[] labels, int initialIndex, string nameSuffix,
         SelectionChangedDelegate onChange)
     {
         ElementBounds labelBounds = ElementBounds.Fixed(LabelX, y, LabelWidth, RowHeight);
         ElementBounds controlBounds = ElementBounds.Fixed(ControlX, y + 2, ControlWidth, RowHeight - 4);
 
-        composer.AddStaticText(Lang.Get(labelKey), CairoFont.WhiteSmallText(), labelBounds);
-        composer.AddDropDown(codes, labels, initialIndex, onChange, controlBounds, "dropdown-" + nameSuffix);
+        container.Add(new GuiElementStaticText(capi, Lang.Get(labelKey),
+            EnumTextOrientation.Left, labelBounds, CairoFont.WhiteSmallText()));
 
-        _buildChildBounds?.Add(labelBounds);
-        _buildChildBounds?.Add(controlBounds);
+        var dd = new GuiElementDropDown(capi, codes, labels, initialIndex, onChange,
+            controlBounds, CairoFont.WhiteSmallText(), false);
+        container.Add(dd);
 
         return y + RowHeight + RowGap;
     }
-
-    // Collected during Build; applied to the composed UI once the controls exist.
-    private readonly System.Collections.Generic.Dictionary<string, bool> _pendingSwitchStates = new();
-
-    // Collected during Build; wired into bgBounds' WithChildren before Compose().
-    // Using an instance field lets the helper methods append to it without changing
-    // their signatures (they're already called via nested closures from Build).
-    private System.Collections.Generic.List<ElementBounds>? _buildChildBounds;
 
     /// <inheritdoc />
     public override void OnGuiOpened()
     {
         base.OnGuiOpened();
-        // Apply initial switch states once the composer has instantiated the controls.
         if (SingleComposer is null) return;
-        foreach (var kvp in _pendingSwitchStates)
+
+        // Apply initial switch states. The switches live inside the scroll
+        // container (not the composer's flat lookup), so we set them via the
+        // references captured during Build rather than GetSwitch(key).
+        foreach (var kvp in _switches)
         {
-            var sw = SingleComposer.GetSwitch("switch-" + kvp.Key);
-            if (sw is not null) sw.On = kvp.Value;
+            if (_switchInitial.TryGetValue(kvp.Key, out bool on))
+            {
+                kvp.Value.On = on;
+            }
         }
     }
 
@@ -319,6 +423,7 @@ internal sealed class SettingsDialogView : GuiDialog
 
     private static string[] HudAnchorLocales() => LocalizeEnumNames<HudAnchor>(LangKeys.Settings.HudPositionStem);
     private static string[] IconThemeLocales() => LocalizeEnumNames<IconTheme>(LangKeys.Settings.IconThemeStem);
+    private static string[] HudTextColorLocales() => LocalizeEnumNames<HudTextColor>(LangKeys.Settings.HudTextColorStem);
     private static string[] TimeFormatLocales() => LocalizeEnumNames<TimeFormat>(LangKeys.Settings.TimeFormatStem);
     private static string[] WindLocales() => LocalizeEnumNames<WindDisplay>(LangKeys.Settings.WindStem);
     private static string[] StormLocales() => LocalizeEnumNames<StormDisplay>(LangKeys.Settings.StormStem);
@@ -350,6 +455,7 @@ internal sealed class SettingsDialogView : GuiDialog
         {
             HudAnchor a      => a.ToKeySuffix(),
             IconTheme it     => it.ToKeySuffix(),
+            HudTextColor h   => h.ToKeySuffix(),
             TimeFormat t     => t.ToKeySuffix(),
             WindDisplay w    => w.ToKeySuffix(),
             StormDisplay s   => s.ToKeySuffix(),

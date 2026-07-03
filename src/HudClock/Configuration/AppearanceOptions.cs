@@ -23,6 +23,30 @@ internal enum IconTheme
     Custom,
 }
 
+/// <summary>
+/// Text color for the main HUD's lines. Darker options reduce the amount of
+/// light emitted by the HUD's static text, which mitigates OLED burn-in risk
+/// from a permanently-displayed HUD. The trade-off is contrast: the HUD renders
+/// on a semi-transparent dark panel, so darker text is harder to read.
+/// </summary>
+internal enum HudTextColor
+{
+    /// <summary>Vanilla bright white. Highest legibility, brightest pixels.</summary>
+    White,
+
+    /// <summary>
+    /// Roughly half-luminance gray. The recommended middle ground: a clear
+    /// reduction in emitted light while staying readable on the shaded panel.
+    /// </summary>
+    Dim,
+
+    /// <summary>
+    /// Near-black. The largest reduction in emitted light, and the lowest
+    /// contrast — best paired with a higher HUD background opacity.
+    /// </summary>
+    Black,
+}
+
 /// <summary>Options controlling visual appearance unrelated to what the HUD shows.</summary>
 internal sealed class AppearanceOptions
 {
@@ -50,4 +74,13 @@ internal sealed class AppearanceOptions
     /// </para>
     /// </summary>
     public bool HemisphereAwareSeason { get; set; } = true;
+
+    /// <summary>
+    /// Color of the main HUD's text lines. Defaults to <see cref="HudTextColor.White"/>
+    /// so existing installs are visually unchanged; a missing value in an older
+    /// settings file also deserializes to <see cref="HudTextColor.White"/>. Darker
+    /// options reduce OLED burn-in risk from static bright text — see
+    /// <see cref="HudTextColor"/> for the contrast trade-off.
+    /// </summary>
+    public HudTextColor HudTextColor { get; set; } = HudTextColor.White;
 }
