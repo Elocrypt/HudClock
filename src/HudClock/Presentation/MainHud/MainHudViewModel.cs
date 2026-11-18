@@ -586,7 +586,7 @@ internal sealed class MainHudViewModel
             string date = _translateFormat(
                 LangKeys.Hud.Date,
                 _calendarSnapshot.DayOfMonth,
-                _translate(LangKeys.Hud.MonthStem + _calendarSnapshot.MonthKey),
+                MonthName(_calendarSnapshot.MonthKey),
                 _calendarSnapshot.Year);
 
             string time = _timeFormatter.Format(_calendarSnapshot.Hour, _calendarSnapshot.Minute);
@@ -764,10 +764,55 @@ internal sealed class MainHudViewModel
     {
         EnumSeason.Spring => _translate(LangKeys.Hud.SeasonStem + "spring"),
         EnumSeason.Summer => _translate(LangKeys.Hud.SeasonStem + "summer"),
-        EnumSeason.Fall   => _translate(LangKeys.Hud.SeasonStem + "fall"),
+        EnumSeason.Fall   => _translate(LangKeys.Hud.SeasonStem + (SeasonWording.UseAutumn(_settings.Appearance.UseAutumn, CultureName) ? "autumn" : "fall")),
         EnumSeason.Winter => _translate(LangKeys.Hud.SeasonStem + "winter"),
         _ => string.Empty,
     };
+
+    // Resolved once: the OS region doesn't change mid-session.
+    private static readonly string CultureName = SeasonWording.DetectCultureName();
+
+    /// <summary>
+    /// Localized month name. Reads the game's own <c>month-*</c> key first so
+    /// calendar theme mods (Elder Scrolls Calendar, Dwarf Fortress Calendar,
+    /// ...) that rename the vanilla months show up on the HUD with no extra
+    /// config, and so the HUD matches the vanilla UI in all 30+ game locales.
+    /// Falls back to this mod's own key if the game key is missing; VS returns
+    /// the key itself for a missing translation, which is how a miss is detected.
+    /// </summary>
+    private string MonthName(string monthKey)
+    {
+        if (monthKey.Length == 0) return string.Empty;
+
+        string gameKey = GameMonthKeys.TryGetValue(monthKey, out string? cached)
+            ? cached
+            : LangKeys.Hud.GameMonthStem + char.ToUpperInvariant(monthKey[0]) + monthKey.Substring(1);
+
+        string name = _translate(gameKey);
+        if (name.Length > 0 && name != gameKey) return name;
+
+        return _translate(LangKeys.Hud.MonthStem + monthKey);
+    }
+
+    // Prebuilt so the per-tick date line doesn't allocate the game key string.
+    // Keys are the lowercase MonthKey from CalendarSnapshot; values match the
+    // capitalized EnumMonth names used in the vanilla lang files.
+    private static readonly Dictionary<string, string> GameMonthKeys = BuildGameMonthKeys();
+
+    private static Dictionary<string, string> BuildGameMonthKeys()
+    {
+        string[] months =
+        {
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December",
+        };
+        var map = new Dictionary<string, string>(months.Length, StringComparer.Ordinal);
+        foreach (string m in months)
+        {
+            map[m.ToLowerInvariant()] = LangKeys.Hud.GameMonthStem + m;
+        }
+        return map;
+    }
 
     /// <summary>
     /// Format a Celsius value as a temperature string respecting the user's

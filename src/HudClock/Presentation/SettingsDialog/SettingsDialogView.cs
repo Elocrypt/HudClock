@@ -333,6 +333,95 @@ internal sealed class SettingsDialogView : GuiDialog
         GuiElementContainer scrollContent = composer.GetContainer(ScrollContentKey);
         float totalHeight = (float)scrollContent.Bounds.fixedHeight;
         composer.GetScrollbar(ScrollbarKey)?.SetHeights(viewportHeight, totalHeight);
+
+        CenterOnScreen(dialogBounds, bgBounds, guiScale);
+    }
+
+    /// <summary>
+    /// Center the dialog's visible background box on the framebuffer, and
+    /// remember that position so <see cref="GuardCenter"/> can restore it.
+    /// </summary>
+    /// <remarks>
+    /// Centering itself was always correct; the off-center bug came from
+    /// something outside this mod moving the dialog between Build() and its
+    /// first rendered frame. A 4.5.0 layout dump showed fixedX forced to the
+    /// same logical value (~704) and fixedY to 0 at every GUI scale, with
+    /// Alignment None: "right edge on screen center" at scale 1.5, so it looks
+    /// like a side-by-side arrangement computed once and reused. Its source is
+    /// not in the public API, hence the guard instead of a targeted fix.
+    /// Skipped when the player has made this dialog Movable: the title bar
+    /// owns the position then.
+    /// </remarks>
+    private void CenterOnScreen(ElementBounds dialogBounds, ElementBounds bgBounds, float guiScale)
+    {
+        _dialogBounds = dialogBounds;
+        _guardFramesLeft = 0;
+        if (capi.Gui.GetDialogPosition(ToggleKeyCombinationCode) is not null) return;
+
+        double shiftX = (capi.Render.FrameWidth - bgBounds.OuterWidth) / 2.0 - bgBounds.absX;
+        double shiftY = (capi.Render.FrameHeight - bgBounds.OuterHeight) / 2.0 - bgBounds.absY;
+        double targetX = Math.Max(0, dialogBounds.absX + shiftX);
+        double targetY = Math.Max(0, dialogBounds.absY + shiftY);
+
+        // absX includes the parent's absX, which fixedX doesn't; subtract it so
+        // the round trip lands where intended even if the parent isn't at 0,0.
+        _centerTargetX = (targetX - (dialogBounds.ParentBounds?.absX ?? 0)) / guiScale;
+        _centerTargetY = (targetY - (dialogBounds.ParentBounds?.absY ?? 0)) / guiScale;
+        ApplyCenter(dialogBounds);
+        _guardFramesLeft = CenterGuardFrames;
+    }
+
+    // Reassert the centered position for a few frames after opening. Bounded
+    // so we never fight anything indefinitely.
+    private const int CenterGuardFrames = 5;
+    private int _guardFramesLeft;
+    private double _centerTargetX;
+    private double _centerTargetY;
+    private ElementBounds? _dialogBounds;
+
+    private void ApplyCenter(ElementBounds b)
+    {
+        b.Alignment = EnumDialogArea.None;
+        b.absMarginX = 0;
+        b.absMarginY = 0;
+        b.fixedOffsetX = 0;
+        b.fixedOffsetY = 0;
+        b.fixedX = _centerTargetX;
+        b.fixedY = _centerTargetY;
+        b.MarkDirtyRecursive();
+        b.CalcWorldBounds();
+    }
+
+    private void GuardCenter()
+    {
+        if (_guardFramesLeft <= 0 || _dialogBounds is null) return;
+        _guardFramesLeft--;
+
+        if (capi.Gui.GetDialogPosition(ToggleKeyCombinationCode) is not null)
+        {
+            _guardFramesLeft = 0;
+            return;
+        }
+
+        ElementBounds b = _dialogBounds;
+        bool moved = b.Alignment != EnumDialogArea.None
+            || Math.Abs(b.fixedX - _centerTargetX) > 0.5
+            || Math.Abs(b.fixedY - _centerTargetY) > 0.5;
+        if (!moved) return;
+
+        _log.Debug("Settings dialog moved externally to ({0:F1},{1:F1}); restoring center ({2:F1},{3:F1})",
+            b.fixedX, b.fixedY, _centerTargetX, _centerTargetY);
+        ApplyCenter(b);
+    }
+
+    /// <inheritdoc />
+    public override void OnRenderGUI(float deltaTime)
+    {
+        // Before base so a move that already happened never reaches the
+        // screen; after base for a move made during this frame's render.
+        GuardCenter();
+        base.OnRenderGUI(deltaTime);
+        GuardCenter();
     }
 
     /// <summary>

@@ -23,7 +23,8 @@ public class MainHudViewModelTests
         FakeClaimService? claim = null,
         FakePlayerStatsService? playerStats = null,
         bool isMultiplayer = false,
-        int onlinePlayers = 0)
+        int onlinePlayers = 0,
+        MainHudViewModel.Translator? translate = null)
     {
         settings ??= new HudClockSettings();
         calendar ??= new FakeCalendarService();
@@ -36,7 +37,7 @@ public class MainHudViewModelTests
 
         var vm = new MainHudViewModel(
             settings, formatter, calendar, weather, rift, room, claim, playerStats,
-            translate: Identity,
+            translate: translate ?? Identity,
             translateFormat: IdentityFormat,
             playerPosition: () => new BlockPos(0, 0, 0),
             onlinePlayerCount: () => onlinePlayers,
@@ -187,6 +188,67 @@ public class MainHudViewModelTests
         var vm = MakeVm(settings: settings, calendar: calendar);
 
         Assert.Equal("hudclock:season-spring", vm.SeasonAndTemperatureText);
+    }
+
+    [Fact]
+    public void Fall_uses_fall_key_when_autumn_disabled()
+    {
+        // Explicit false: the default (null) follows the OS region, which
+        // would make this test depend on the machine running it.
+        var settings = new HudClockSettings();
+        settings.Appearance.UseAutumn = false;
+        settings.Weather.ShowSeason = true;
+        settings.Weather.ShowTemperature = false;
+        var calendar = new FakeCalendarService { Season = EnumSeason.Fall };
+
+        var vm = MakeVm(settings: settings, calendar: calendar);
+
+        Assert.Equal("hudclock:season-fall", vm.SeasonAndTemperatureText);
+    }
+
+    [Fact]
+    public void Fall_uses_autumn_key_when_enabled()
+    {
+        var settings = new HudClockSettings();
+        settings.Weather.ShowSeason = true;
+        settings.Weather.ShowTemperature = false;
+        settings.Appearance.UseAutumn = true;
+        var calendar = new FakeCalendarService { Season = EnumSeason.Fall };
+
+        var vm = MakeVm(settings: settings, calendar: calendar);
+
+        Assert.Equal("hudclock:season-autumn", vm.SeasonAndTemperatureText);
+    }
+
+    [Fact]
+    public void Month_prefers_game_lang_key_so_calendar_mods_apply()
+    {
+        var settings = new HudClockSettings();
+        settings.Time.ShowDate = true;
+        settings.Time.ShowTime = false;
+        var calendar = new FakeCalendarService { Snapshot = new(5, "september", 3, 9, 0) };
+        // Simulates a calendar mod renaming the vanilla month.
+        MainHudViewModel.Translator translate = k => k == "game:month-September" ? "Hearthfire" : k;
+
+        var vm = MakeVm(settings: settings, calendar: calendar, translate: translate);
+
+        Assert.Contains("Hearthfire", vm.DateAndTimeText);
+        Assert.DoesNotContain("hudclock:month-september", vm.DateAndTimeText);
+    }
+
+    [Fact]
+    public void Month_falls_back_to_mod_key_when_game_key_missing()
+    {
+        var settings = new HudClockSettings();
+        settings.Time.ShowDate = true;
+        settings.Time.ShowTime = false;
+        var calendar = new FakeCalendarService { Snapshot = new(5, "september", 3, 9, 0) };
+
+        // Identity translator: every key "misses", so the game key comes back unchanged.
+        var vm = MakeVm(settings: settings, calendar: calendar);
+
+        Assert.Contains("hudclock:month-september", vm.DateAndTimeText);
+        Assert.DoesNotContain("game:month-", vm.DateAndTimeText);
     }
 
     [Fact]

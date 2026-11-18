@@ -1,7 +1,7 @@
 {
   "hudclock:am": "AM",
   "hudclock:pm": "PM",
-  "hudclock:date": "{0}. {1}, Rok {2}",
+  "hudclock:date": "{0} {1}, Rok {2}",
   "hudclock:month-january": "Styczeń",
   "hudclock:month-february": "Luty",
   "hudclock:month-march": "Marzec",
@@ -19,6 +19,7 @@
   "hudclock:season-spring": "Wiosna",
   "hudclock:season-summer": "Lato",
   "hudclock:season-fall": "Jesień",
+  "hudclock:season-autumn": "Jesień",
   "hudclock:moon-phase-prefix": "Księżyc: {0}",
   "hudclock:moon-phase-newmoon": "Nów",
   "hudclock:moon-phase-waxingcrescent": "Przybywający sierp",
@@ -129,5 +130,6 @@
   "hudclock:settings-hud-text-color": "Kolor tekstu",
   "hudclock:settings-hud-text-color-white": "Biały",
   "hudclock:settings-hud-text-color-dim": "Przyciemniony",
-  "hudclock:settings-hud-text-color-black": "Czarny"
+  "hudclock:settings-hud-text-color-black": "Czarny",
+  "hudclock:legacy-mod-warning": "[HUD Clock] Zainstalowany jest też stary Simple HUD Clock (hudclock). Nie obsługuje wersji 1.22 i może powodować awarie gry. Usuń go z folderu Mods; ten mod go zastępuje."
 }

@@ -19,6 +19,7 @@
   "hudclock:season-spring": "봄",
   "hudclock:season-summer": "여름",
   "hudclock:season-fall": "가을",
+  "hudclock:season-autumn": "가을",
   "hudclock:moon-phase-prefix": "달: {0}",
   "hudclock:moon-phase-newmoon": "신월",
   "hudclock:moon-phase-waxingcrescent": "초승달",
@@ -129,5 +130,6 @@
   "hudclock:settings-hud-text-color": "텍스트 색상",
   "hudclock:settings-hud-text-color-white": "흰색",
   "hudclock:settings-hud-text-color-dim": "어둡게",
-  "hudclock:settings-hud-text-color-black": "검은색"
+  "hudclock:settings-hud-text-color-black": "검은색",
+  "hudclock:legacy-mod-warning": "[HUD Clock] 구버전 Simple HUD Clock (hudclock)도 설치되어 있습니다. 1.22를 지원하지 않아 게임이 충돌할 수 있습니다. Mods 폴더에서 제거하세요. 이 모드가 대체합니다."
 }

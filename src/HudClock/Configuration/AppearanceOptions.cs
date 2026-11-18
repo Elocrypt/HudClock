@@ -13,12 +13,12 @@ internal enum IconTheme
     Classic,
 
     /// <summary>
-    /// User-supplied art under <c>assets/hudclock/textures/{hud,room}/custom/</c>.
-    /// The mod ships transparent placeholders so the HUD layout still
-    /// resolves cleanly when no custom art is present; users override
-    /// individual files via a standard Vintage Story texture pack or by
-    /// dropping PNGs into the custom/ folders directly. Reserves the same
-    /// 200×200 season-icon column as <see cref="Modern"/>.
+    /// User-supplied art. Each icon is resolved in order: a PNG in
+    /// <c>ModConfig/hudclock/custom/{hud,room}/</c> (survives mod updates),
+    /// then the <c>hudclock:textures/{hud,room}/custom/</c> asset (texture
+    /// packs), then the matching <see cref="Modern"/> icon. The shipped
+    /// transparent placeholders count as "no art" so an unfilled slot shows
+    /// Modern art instead of nothing. See <c>IconCache</c>.
     /// </summary>
     Custom,
 }
@@ -83,4 +83,12 @@ internal sealed class AppearanceOptions
     /// <see cref="HudTextColor"/> for the contrast trade-off.
     /// </summary>
     public HudTextColor HudTextColor { get; set; } = HudTextColor.White;
+
+    /// <summary>
+    /// English only: "Autumn" (true) or "Fall" (false) for the third season.
+    /// Null (the default, and what older settings files deserialize to) means
+    /// automatic from the Windows region; see <c>SeasonWording</c>. No settings
+    /// row; set it in the JSON to override. Other locales ignore it.
+    /// </summary>
+    public bool? UseAutumn { get; set; }
 }

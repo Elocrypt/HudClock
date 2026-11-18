@@ -49,4 +49,33 @@ public class AssetPathsTests
         Assert.Equal("hudclock:textures/room/classic/cellar.png", AssetPaths.Room.Cellar(IconTheme.Classic));
         Assert.Equal("hudclock:textures/room/custom/greenhouse.png", AssetPaths.Room.Greenhouse(IconTheme.Custom));
     }
+
+    [Theory]
+    [InlineData("hudclock:textures/hud/custom/fall.png", "hud/fall.png", "hudclock:textures/hud/modern/fall-large.png")]
+    [InlineData("hudclock:textures/hud/custom/tempstorm.png", "hud/tempstorm.png", "hudclock:textures/hud/modern/tempstorm-large.png")]
+    [InlineData("hudclock:textures/room/custom/cellar.png", "room/cellar.png", "hudclock:textures/room/modern/cellar.png")]
+    public void Custom_paths_resolve_to_user_file_and_modern_fallback(string assetPath, string expectedUser, string expectedModern)
+    {
+        Assert.True(AssetPaths.TryResolveCustom(assetPath, out string user, out string modern));
+        Assert.Equal(expectedUser, user);
+        Assert.Equal(expectedModern, modern);
+    }
+
+    [Fact]
+    public void Custom_fallbacks_match_real_modern_paths()
+    {
+        // Guards against the fallback drifting from the paths the Modern theme
+        // actually loads (e.g. someone renames the -large suffix).
+        AssetPaths.TryResolveCustom(AssetPaths.Hud.SeasonWinter(IconTheme.Custom), out _, out string season);
+        AssetPaths.TryResolveCustom(AssetPaths.Room.Generic(IconTheme.Custom), out _, out string room);
+        Assert.Equal(AssetPaths.Hud.SeasonWinter(IconTheme.Modern), season);
+        Assert.Equal(AssetPaths.Room.Generic(IconTheme.Modern), room);
+    }
+
+    [Fact]
+    public void Non_custom_paths_do_not_resolve()
+    {
+        Assert.False(AssetPaths.TryResolveCustom(AssetPaths.Hud.SeasonFall(IconTheme.Modern), out _, out _));
+        Assert.False(AssetPaths.TryResolveCustom(AssetPaths.Room.Cellar(IconTheme.Classic), out _, out _));
+    }
 }

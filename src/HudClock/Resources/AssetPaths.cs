@@ -34,6 +34,43 @@ internal static class AssetPaths
         public static string Greenhouse(IconTheme theme) => $"hudclock:textures/room/{Folder(theme)}/greenhouse.png";
     }
 
+    private const string CustomHudPrefix  = "hudclock:textures/hud/custom/";
+    private const string CustomRoomPrefix = "hudclock:textures/room/custom/";
+
+    /// <summary>
+    /// For a Custom-theme asset path, return where the player's own file
+    /// lives (relative to <c>ModConfig/hudclock/custom/</c>) and which Modern
+    /// asset to show when they haven't supplied one.
+    /// </summary>
+    /// <returns><see langword="false"/> for any non-Custom path.</returns>
+    /// <example>
+    /// <c>hudclock:textures/hud/custom/fall.png</c> →
+    /// <c>hud/fall.png</c>, <c>hudclock:textures/hud/modern/fall-large.png</c>.
+    /// </example>
+    public static bool TryResolveCustom(string assetPath, out string userRelativePath, out string modernFallbackPath)
+    {
+        if (assetPath.StartsWith(CustomHudPrefix, StringComparison.Ordinal))
+        {
+            string file = assetPath.Substring(CustomHudPrefix.Length);           // fall.png
+            string stem = file.EndsWith(".png", StringComparison.Ordinal) ? file[..^4] : file;
+            userRelativePath = "hud/" + file;
+            modernFallbackPath = $"hudclock:textures/hud/{Folder(IconTheme.Modern)}/{stem}{Suffix(IconTheme.Modern)}.png";
+            return true;
+        }
+
+        if (assetPath.StartsWith(CustomRoomPrefix, StringComparison.Ordinal))
+        {
+            string file = assetPath.Substring(CustomRoomPrefix.Length);
+            userRelativePath = "room/" + file;
+            modernFallbackPath = $"hudclock:textures/room/{Folder(IconTheme.Modern)}/{file}";
+            return true;
+        }
+
+        userRelativePath = string.Empty;
+        modernFallbackPath = string.Empty;
+        return false;
+    }
+
     /// <summary>
     /// Folder segment for a given theme. Matches the on-disk layout at
     /// <c>src/HudClock/assets/hudclock/textures/{hud,room}/{modern,classic,custom}/</c>.

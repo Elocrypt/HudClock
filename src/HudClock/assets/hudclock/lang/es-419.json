@@ -19,6 +19,7 @@
   "hudclock:season-spring": "Primavera",
   "hudclock:season-summer": "Verano",
   "hudclock:season-fall": "Otoño",
+  "hudclock:season-autumn": "Otoño",
   "hudclock:moon-phase-prefix": "Luna: {0}",
   "hudclock:moon-phase-newmoon": "Luna nueva",
   "hudclock:moon-phase-waxingcrescent": "Luna creciente",
@@ -129,5 +130,6 @@
   "hudclock:settings-hud-text-color": "Color del texto",
   "hudclock:settings-hud-text-color-white": "Blanco",
   "hudclock:settings-hud-text-color-dim": "Atenuado",
-  "hudclock:settings-hud-text-color-black": "Negro"
+  "hudclock:settings-hud-text-color-black": "Negro",
+  "hudclock:legacy-mod-warning": "[HUD Clock] También está instalado el antiguo Simple HUD Clock (hudclock). No es compatible con 1.22 y puede hacer que el juego se cierre. Quítalo de tu carpeta Mods; este mod lo reemplaza."
 }

@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [4.5.0] - 2026/11/17
+
+Release: [4.5.0-tag]
+
+### Added
+
+- **Calendar mod support.** Month names now come from the game's own `month-*` lang keys first, so calendar theme mods that rename the vanilla months (Elder Scrolls Calendar, Dwarf Fortress Calendar, and any others) show up on the HUD with no extra setup. HUD Clock's own month names remain as a fallback. Side effect: months now match the vanilla UI exactly in every locale (Russian and Polish use the genitive form, e.g. `5 сентября`; their date format dropped the dot to fit).
+- **"Autumn" for non-North-American English.** The English HUD now says "Autumn" instead of "Fall" automatically when the Windows region is outside the US and Canada. The game has a single English locale, so the OS region is the only signal available. Override with `"UseAutumn": true` or `false` under `Appearance` in the settings file; leave it `null` for automatic.
+- **Custom icons from ModConfig.** The Custom icon theme now loads PNGs from `ModConfig/hudclock/custom/hud/` and `ModConfig/hudclock/custom/room/`, so custom art survives mod updates instead of living inside the zip. The folder and a README listing the expected filenames are created the first time Custom is selected. Texture packs overriding `hudclock:textures/.../custom/` still work.
+- Warning when the original Simple HUD Clock (mod ID `hudclock`, 3.x by Rhonen) is installed alongside this mod. That mod is unmaintained, doesn't support 1.22, and crashes with a `MissingMethodException` (`GuiComposerHelpers.AddDialogTitleBar`) when its settings dialog opens; it also shares this mod's asset domain, config folder and hotkey codes. HUD Clock now logs a warning at startup and posts one chat message on world join telling the player to remove it. Translated into all 13 locales.
+
+### Fixed
+
+- Settings dialog opened off-center (and pinned to the top of the screen) at most GUI scales. The centering math was correct; something outside HUD Clock moved the dialog to a fixed spot before its first frame. HUD Clock now reasserts the centered position for the first few frames after opening. Dialogs switched to "Movable" keep their saved position.
+- Custom icon theme showed no season/room icon for any slot without custom art (the shipped placeholders are transparent). Missing or fully transparent custom icons now fall back to the Modern art.
+
+### Changed
+
+- Development builds now reference the VS 1.22.7 install by default (`Directory.Build.props` fallback path).
+
 ## [4.4.1] - 2026/07/03
 
 Release: [4.4.1-tag]
@@ -205,7 +225,7 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.4.1...HEAD
+[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.5.0...HEAD
 [4.4.1]: https://github.com/Elocrypt/HudClock/compare/v4.4.0...v4.4.1
 [4.4.0]: https://github.com/Elocrypt/HudClock/compare/v4.3.3...v4.4.0
 [4.3.3]: https://github.com/Elocrypt/HudClock/compare/v4.3.2...v4.3.3
@@ -217,6 +237,7 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 [4.2.1]: https://github.com/Elocrypt/HudClock/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/Elocrypt/HudClock/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/Elocrypt/HudClock/compare/v4.0.0...v4.1.0
+[4.5.0-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.5.0
 [4.4.1-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.4.1
 [4.4.0-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.4.0
 [4.3.3-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.3.3

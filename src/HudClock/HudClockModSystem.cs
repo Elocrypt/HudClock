@@ -18,6 +18,7 @@ using HudClock.Presentation.MainHud;
 using HudClock.Presentation.SettingsDialog;
 using HudClock.Presentation.Shared;
 using HudClock.Presentation.StormHud;
+using HudClock.Resources;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -29,6 +30,17 @@ namespace HudClock;
 /// </summary>
 public sealed class HudClockModSystem : ModSystem
 {
+    /// <summary>
+    /// Mod ID of Rhonen's original Simple HUD Clock (3.x). It is unmaintained,
+    /// crashes on 1.22 (MissingMethodException in its own settings dialog), and
+    /// shares our asset domain, ModConfig folder and hotkey codes. Users keep
+    /// installing it by mistake from the same search results, then report the
+    /// crash here.
+    /// </summary>
+    private const string LegacyModId = "hudclock";
+
+    private bool _legacyModDetected;
+
     // Infrastructure.
     private ModLog? _log;
     private ISettingsStore? _settingsStore;
@@ -76,6 +88,17 @@ public sealed class HudClockModSystem : ModSystem
         api.Event.IsPlayerReady += OnPlayerReady;
         api.Event.LeaveWorld += OnLeaveWorld;
 
+        // Logged here so it lands in client-main.log even if the legacy mod
+        // crashes the client before the player-ready chat message can show.
+        _legacyModDetected = api.ModLoader.IsModEnabled(LegacyModId);
+        if (_legacyModDetected)
+        {
+            _log.Warning(
+                "The original Simple HUD Clock (modid '{0}') is also enabled. It does not support 1.22 and is the source of " +
+                "'hudclock@3.x' MissingMethodException crash reports. Remove it; HUD Clock (hudclockpatch) replaces it.",
+                LegacyModId);
+        }
+
         _log.Notification("{0} infrastructure loaded.", Mod.Info.Version);
     }
 
@@ -119,6 +142,12 @@ public sealed class HudClockModSystem : ModSystem
         _settingsDialog.SettingsChanged += OnSettingsChanged;
 
         log.Notification("Domain services and HUD components online.");
+
+        if (_legacyModDetected)
+        {
+            api.ShowChatMessage(Lang.Get(LangKeys.LegacyModWarning));
+        }
+
         return true;
     }
 

@@ -12,6 +12,12 @@ internal static class LangKeys
     public const string AmSuffix = "hudclock:am";
     public const string PmSuffix = "hudclock:pm";
 
+    /// <summary>
+    /// One-shot chat warning shown on world join when Rhonen's original
+    /// Simple HUD Clock (modid <c>hudclock</c>) is also enabled.
+    /// </summary>
+    public const string LegacyModWarning = "hudclock:legacy-mod-warning";
+
     /// <summary>Main HUD lines and formatting strings.</summary>
     public static class Hud
     {
@@ -118,9 +124,22 @@ internal static class LangKeys
         /// <summary>Format: "Players online: {0}".</summary>
         public const string OnlinePlayers = "hudclock:online-players";
 
-        public const string SeasonStem = "hudclock:season-"; // + winter / spring / summer / fall
+        public const string SeasonStem = "hudclock:season-"; // + winter / spring / summer / fall / autumn
 
-        public const string MonthStem  = "hudclock:month-";  // + january..december
+        /// <summary>
+        /// Fallback month names (+ january..december). The HUD prefers
+        /// <see cref="GameMonthStem"/> so calendar theme mods apply; these are
+        /// only used if the game key is missing.
+        /// </summary>
+        public const string MonthStem  = "hudclock:month-";
+
+        /// <summary>
+        /// Vanilla month keys (+ January..December, capitalized as in
+        /// <c>EnumMonth</c>). Calendar mods such as Elder Scrolls Calendar and
+        /// Dwarf Fortress Calendar rename these, so reading them gives
+        /// zero-config compatibility with any such mod.
+        /// </summary>
+        public const string GameMonthStem = "game:month-";
 
         /// <summary>Format: "Moon: {0}" where {0} is a localized phase name.</summary>
         public const string MoonPhasePrefix = "hudclock:moon-phase-prefix";

@@ -19,6 +19,7 @@
   "hudclock:season-spring": "Весна",
   "hudclock:season-summer": "Літо",
   "hudclock:season-fall": "Осінь",
+  "hudclock:season-autumn": "Осінь",
   "hudclock:moon-phase-prefix": "Місяць: {0}",
   "hudclock:moon-phase-newmoon": "Новий місяць",
   "hudclock:moon-phase-waxingcrescent": "Зростаючий серп",
@@ -129,5 +130,6 @@
   "hudclock:settings-hud-text-color": "Колір тексту",
   "hudclock:settings-hud-text-color-white": "Білий",
   "hudclock:settings-hud-text-color-dim": "Тьмяний",
-  "hudclock:settings-hud-text-color-black": "Чорний"
+  "hudclock:settings-hud-text-color-black": "Чорний",
+  "hudclock:legacy-mod-warning": "[HUD Clock] Також встановлено старий Simple HUD Clock (hudclock). Він не підтримує 1.22 і може спричинити виліт гри. Видаліть його з папки Mods; цей мод його замінює."
 }

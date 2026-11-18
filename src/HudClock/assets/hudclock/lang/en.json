@@ -21,6 +21,7 @@
   "hudclock:season-spring": "Spring",
   "hudclock:season-summer": "Summer",
   "hudclock:season-fall": "Fall",
+  "hudclock:season-autumn": "Autumn",
   "hudclock:moon-phase-prefix": "Moon: {0}",
   "hudclock:moon-phase-newmoon": "New Moon",
   "hudclock:moon-phase-waxingcrescent": "Waxing Crescent",
@@ -129,5 +130,6 @@
   "hudclock:apparent-temperature-state-cold": "Cold",
   "hudclock:apparent-temperature-state-freezing": "Freezing",
   "hudclock:apparent-temperature-state-warm": "Warm",
-  "hudclock:apparent-temperature-state-hot": "Hot"
+  "hudclock:apparent-temperature-state-hot": "Hot",
+  "hudclock:legacy-mod-warning": "[HUD Clock] The old Simple HUD Clock (hudclock) is also installed. It doesn't support 1.22 and can crash your game. Remove it from your Mods folder; this mod replaces it."
 }

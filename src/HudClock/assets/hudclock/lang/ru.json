@@ -1,7 +1,7 @@
 {
   "hudclock:am": "ДП",
   "hudclock:pm": "ПП",
-  "hudclock:date": "{0}. {1}, Год {2}",
+  "hudclock:date": "{0} {1}, Год {2}",
   "hudclock:month-january": "Январь",
   "hudclock:month-february": "Февраль",
   "hudclock:month-march": "Март",
@@ -19,6 +19,7 @@
   "hudclock:season-spring": "Весна",
   "hudclock:season-summer": "Лето",
   "hudclock:season-fall": "Осень",
+  "hudclock:season-autumn": "Осень",
   "hudclock:moon-phase-prefix": "Луна: {0}",
   "hudclock:moon-phase-newmoon": "Новолуние",
   "hudclock:moon-phase-waxingcrescent": "Молодая луна",
@@ -129,5 +130,6 @@
   "hudclock:settings-hud-text-color": "Цвет текста",
   "hudclock:settings-hud-text-color-white": "Белый",
   "hudclock:settings-hud-text-color-dim": "Тусклый",
-  "hudclock:settings-hud-text-color-black": "Чёрный"
+  "hudclock:settings-hud-text-color-black": "Чёрный",
+  "hudclock:legacy-mod-warning": "[HUD Clock] Также установлен старый Simple HUD Clock (hudclock). Он не поддерживает 1.22 и может вызвать вылет игры. Удалите его из папки Mods; этот мод его заменяет."
 }

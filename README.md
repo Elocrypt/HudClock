@@ -26,6 +26,7 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 ### Time & calendar
 - In-game **date**, **time**, and **season**, with a large seasonal illustration that tracks the current season
 - 12-hour or 24-hour format toggle
+- Month names follow calendar mods like Elder Scrolls Calendar and Dwarf Fortress Calendar automatically
 - Optional **real-time clock** line for quick glances at real-world time
 - Optional **moon phase** line — current lunar phase from New Moon through Full Moon to Waning Crescent, handy for tracking phase-tied events when overcast skies or dense biomes keep the moon out of view
 
@@ -34,7 +35,7 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 - **Wind speed** as either a Beaufort-scale descriptor or a percentage
 - Optional **rainfall** line using the same labels as the vanilla Environment dialog
 - Optional **Area rainfall** line showing how rainy your biome is, matching the vanilla Environment panel's "Rainfall in this Area".
-- Clean, textured icons for spring, summer, fall, and winter
+- Clean, textured icons for spring, summer, fall, and winter (says "Autumn" or "Fall" based on your Windows region)
 
 ### Temporal storms
 - Separate storm dialog with countdown to the next storm, rendered as `hh:mm` of in-game time
@@ -43,9 +44,9 @@ In-game time · date · season · temperature · wind · rift activity · tempor
 - Independent screen anchor so you can park it in a different corner than the main HUD
 
 ### Appearance
-- **Icon theme selector** — pick between *Modern* (refreshed 4.x art), *Classic* (the original 3.x art), or *Custom* (your own textures via a texture pack)
+- **Icon theme selector** — pick between *Modern* (refreshed 4.x art), *Classic* (the original 3.x art), or *Custom* (your own PNGs)
 - Season, storm, and room-indicator icons all swap together when the theme changes
-- For Custom: drop PNGs into `assets/hudclock/textures/hud/custom/` (`spring.png`, `summer.png`, `fall.png`, `winter.png`, `tempstorm.png`) and `assets/hudclock/textures/room/custom/` (`room.png`, `cellar.png`, `greenhouse.png`), or override the same paths with a standard Vintage Story texture pack
+- For Custom: put PNGs in `ModConfig/hudclock/custom/hud/` (`spring.png`, `summer.png`, `fall.png`, `winter.png`, `tempstorm.png`) and `ModConfig/hudclock/custom/room/` (`room.png`, `cellar.png`, `greenhouse.png`). The folders are created the first time you pick Custom, they survive mod updates, and any icon you leave out shows the Modern art. Texture packs overriding `hudclock:textures/{hud,room}/custom/` also work
 
 </td>
 <td width="50%" valign="top">
@@ -110,6 +111,7 @@ Editing the JSON directly while the game is running works but a settings-dialog 
 
 - **Vintage Story 1.22.0** or later. Earlier versions aren't supported — the [3.x and below lines](https://mods.vintagestory.at/hudclock#tab-files) runs on 1.21 and below.
 - Client-side only. Safe to use on multiplayer servers the mod isn't installed on.
+- **Don't install the original Simple HUD Clock** (mod ID `hudclock`, 3.x by Rhonen) alongside or instead of this one. It doesn't support 1.22 and crashes when its settings dialog opens. If your crash report names `hudclock@3.4.0`, that's the old mod: delete its zip from `Mods/`. HUD Clock's mod ID is `hudclockpatch`, and it warns in chat if it finds both installed.
 - No known conflicts. The mod reads from (but never writes to) VS's temporal-storm and rift systems via reflection, which is why each VS version is pinned explicitly — an API shape change will gracefully degrade those two lines rather than crash the HUD.
 - **Mod integrations.** HUD Clock displays extended body-temperature and apparent ("feels like") temperature when another mod publishes them under a small set of well-known watched-attribute keys. Compatible out of the box with [Immersive Body Temperature](https://mods.vintagestory.at/immersivebodytemperature) by Cer0; the contract is documented in [`docs/integration.md`](docs/integration.md) so any temperature mod can opt in.
 - **[HudShelf](https://github.com/Elocrypt/HudShelf)** (optional). When installed, both the main HUD and the storm dialog become freely draggable via HudShelf's edit-mode hotkey. HUD Clock soft-depends on HudShelf — it works identically without it.
@@ -164,7 +166,7 @@ Press <kbd>F5</kbd> in Visual Studio. The `Vintage Story` launch profile runs `%
 dotnet test HudClock.sln -c Release
 ```
 
-133 tests across calendar formatting, the storm dialog state machine, settings defaults, lang-key enum coverage, reflective field access, and bounds building.
+Tests cover calendar formatting, the storm dialog state machine, settings defaults, lang-key enum coverage, reflective field access, and bounds building.
 
 ### Package a release
 

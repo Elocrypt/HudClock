@@ -19,6 +19,7 @@
   "hudclock:season-spring": "春",
   "hudclock:season-summer": "夏",
   "hudclock:season-fall": "秋",
+  "hudclock:season-autumn": "秋",
   "hudclock:moon-phase-prefix": "月: {0}",
   "hudclock:moon-phase-newmoon": "新月",
   "hudclock:moon-phase-waxingcrescent": "三日月",
@@ -129,5 +130,6 @@
   "hudclock:settings-hud-text-color": "テキストの色",
   "hudclock:settings-hud-text-color-white": "白",
   "hudclock:settings-hud-text-color-dim": "暗め",
-  "hudclock:settings-hud-text-color-black": "黒"
+  "hudclock:settings-hud-text-color-black": "黒",
+  "hudclock:legacy-mod-warning": "[HUD Clock] 旧版の Simple HUD Clock (hudclock) もインストールされています。1.22 に対応しておらず、ゲームがクラッシュする可能性があります。Mods フォルダから削除してください。このModが代わりになります。"
 }
