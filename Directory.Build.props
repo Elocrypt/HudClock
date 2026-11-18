@@ -30,8 +30,10 @@
 
 
   <PropertyGroup>
-    <!-- Local development only - set this to your HudShelf build output path -->
-    <HUDSHELF_DLL Condition="'$(HUDSHELF_DLL)' == ''">F:\DevHub\03_Modding\VintageStory\v1.22.0\HudShelf\bin\Debug\HudShelf.dll</HUDSHELF_DLL>
+    <!-- Local development only. Resolved relative to this repo so it survives folder moves:
+         expects the HudShelf repo as a sibling (_Mods\HudClock, _Mods\HudShelf).
+         Override with the HUDSHELF_DLL env var or property if your layout differs. -->
+    <HUDSHELF_DLL Condition="'$(HUDSHELF_DLL)' == ''">$(MSBuildThisFileDirectory)..\HudShelf\bin\Debug\HudShelf.dll</HUDSHELF_DLL>
   </PropertyGroup>
 
   
