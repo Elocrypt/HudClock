@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [4.5.1] - 2026/11/26
+
+Release: [4.5.1-tag]
+
+### Added
+
+- Czech translation, contributed by [DejVIIK-Original](https://github.com/DejVIIK-Original) ([#13](https://github.com/Elocrypt/HudClock/issues/13)).
+
 ## [4.5.0] - 2026/11/17
 
 Release: [4.5.0-tag]
@@ -225,7 +233,8 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
-[Unreleased]: https://github.com/Elocrypt/HudClock/compare/v4.5.0...HEAD
+[4.5.1]: https://github.com/Elocrypt/HudClock/compare/v4.5.0...v4.5.1
+[4.5.0]: https://github.com/Elocrypt/HudClock/compare/v4.4.1...v4.5.0
 [4.4.1]: https://github.com/Elocrypt/HudClock/compare/v4.4.0...v4.4.1
 [4.4.0]: https://github.com/Elocrypt/HudClock/compare/v4.3.3...v4.4.0
 [4.3.3]: https://github.com/Elocrypt/HudClock/compare/v4.3.2...v4.3.3
@@ -237,6 +246,7 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 [4.2.1]: https://github.com/Elocrypt/HudClock/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/Elocrypt/HudClock/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/Elocrypt/HudClock/compare/v4.0.0...v4.1.0
+[4.5.1-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.5.1
 [4.5.0-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.5.0
 [4.4.1-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.4.1
 [4.4.0-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.4.0

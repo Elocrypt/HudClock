@@ -118,7 +118,7 @@ Editing the JSON directly while the game is running works but a settings-dialog 
 
 ## Languages
 
-English, Spanish (Latin American), Spanish (Castilian), German, Korean, French, Italian, Japanese, Polish, Portuguese (Brazil), Portuguese (Portugal), Russian, Ukrainian. The game picks the right language automatically based on your client locale. Contributions welcome.
+English, Czech, Spanish (Latin American), Spanish (Castilian), German, Korean, French, Italian, Japanese, Polish, Portuguese (Brazil), Portuguese (Portugal), Russian, Ukrainian. The game picks the right language automatically based on your client locale. Contributions welcome.
 
 ---
 
