@@ -157,10 +157,17 @@ internal sealed class MainHudView : HudElement
         // bitmap is baked into the composer's cached texture at Compose
         // time — a change in room status triggers a full Rebuild via the
         // viewmodel's change-detection, see MainHudViewModel.Tick.
+        // Fixed coordinates, not RightBottom alignment: the dialog is
+        // FitToChildren, and VS measures children with Alignment=None, so
+        // an aligned child contributes its absMarginX from the previous
+        // compose. After a GUI scale-down that stale margin widened the
+        // panel and pushed the icon right of the background.
         if (_viewModel.IsRoomIndicatorVisible)
         {
-            ElementBounds roomBounds = ElementBounds.FixedOffseted(
-                EnumDialogArea.RightBottom, 0, 0, RoomIconSize, RoomIconSize);
+            ElementBounds roomBounds = ElementBounds.Fixed(
+                OffsetX + LineWidth - RoomIconSize,
+                layout.TotalHeight - RoomIconSize,
+                RoomIconSize, RoomIconSize);
             composer.AddStaticCustomDraw(roomBounds, DrawRoomIcon);
         }
 

@@ -6,13 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [4.5.1] - 2026/11/26
+## [4.5.1] - 2026/11/27
 
 Release: [4.5.1-tag]
 
 ### Added
 
 - Czech translation, contributed by [DejVIIK-Original](https://github.com/DejVIIK-Original) ([#13](https://github.com/Elocrypt/HudClock/issues/13)).
+
+### Fixed
+
+- Room indicator icon drifted to the right, outside the HUD panel, after lowering the GUI scale. It was aligned to the panel's bottom-right corner, and VS sizes an auto-sized dialog using each aligned child's position from the previous layout, so the old scale's offset widened the panel. The icon now uses fixed coordinates.
 
 ## [4.5.0] - 2026/11/17
 

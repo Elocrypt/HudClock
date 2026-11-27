@@ -32,9 +32,23 @@
   <PropertyGroup>
     <!-- Local development only. Resolved relative to this repo so it survives folder moves:
          expects the HudShelf repo as a sibling (_Mods\HudClock, _Mods\HudShelf).
-         Override with the HUDSHELF_DLL env var or property if your layout differs. -->
-    <HUDSHELF_DLL Condition="'$(HUDSHELF_DLL)' == ''">$(MSBuildThisFileDirectory)..\HudShelf\bin\Debug\HudShelf.dll</HUDSHELF_DLL>
+         Override with the HUDSHELF_DLL env var or property if your layout differs.
+         Prefers the sibling build matching this configuration, then Release, then Debug.
+         An override pointing at a missing file is ignored rather than silently
+         producing CS0246 on `using HudShelf;`. -->
+    <_HudShelfBin>$(MSBuildThisFileDirectory)..\HudShelf\bin\</_HudShelfBin>
+    <HUDSHELF_DLL Condition="'$(HUDSHELF_DLL)' != '' AND !Exists('$(HUDSHELF_DLL)')"></HUDSHELF_DLL>
+    <HUDSHELF_DLL Condition="'$(HUDSHELF_DLL)' == '' AND '$(Configuration)' != '' AND Exists('$(_HudShelfBin)$(Configuration)\HudShelf.dll')">$(_HudShelfBin)$(Configuration)\HudShelf.dll</HUDSHELF_DLL>
+    <HUDSHELF_DLL Condition="'$(HUDSHELF_DLL)' == '' AND Exists('$(_HudShelfBin)Release\HudShelf.dll')">$(_HudShelfBin)Release\HudShelf.dll</HUDSHELF_DLL>
+    <HUDSHELF_DLL Condition="'$(HUDSHELF_DLL)' == ''">$(_HudShelfBin)Debug\HudShelf.dll</HUDSHELF_DLL>
   </PropertyGroup>
+
+  <!-- Fail with the resolved path instead of a bare CS0246. -->
+  <Target Name="HudClockCheckHudShelf" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(HUDSHELF_DLL)')"
+           Text="HudShelf.dll not found at '$(HUDSHELF_DLL)'. Build _Mods\HudShelf first, or set HUDSHELF_DLL to a built HudShelf.dll." />
+    <Message Importance="high" Text="[HudClock] HudShelf reference: $(HUDSHELF_DLL)" />
+  </Target>
 
   
   <!-- Shared language + nullability settings for every project in this repo. -->
