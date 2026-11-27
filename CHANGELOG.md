@@ -6,17 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [4.5.1] - 2026/11/27
+## [4.5.2] - 2026/11/27
+
+Release: [4.5.2-tag]
+
+### Fixed
+
+- Room indicator icon drifted to the right, outside the HUD panel, after lowering the GUI scale. It was aligned to the panel's bottom-right corner, and VS sizes an auto-sized dialog using each aligned child's position from the previous layout, so the old scale's offset widened the panel. The icon now uses fixed coordinates.
+
+## [4.5.1] - 2026/11/26
 
 Release: [4.5.1-tag]
 
 ### Added
 
 - Czech translation, contributed by [DejVIIK-Original](https://github.com/DejVIIK-Original) ([#13](https://github.com/Elocrypt/HudClock/issues/13)).
-
-### Fixed
-
-- Room indicator icon drifted to the right, outside the HUD panel, after lowering the GUI scale. It was aligned to the panel's bottom-right corner, and VS sizes an auto-sized dialog using each aligned child's position from the previous layout, so the old scale's offset widened the panel. The icon now uses fixed coordinates.
 
 ## [4.5.0] - 2026/11/17
 
@@ -237,6 +241,7 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 - Internal `SharedLibrary` helpers that were no longer used.
 - Harmony reference (no patches required).
 
+[4.5.2]: https://github.com/Elocrypt/HudClock/compare/v4.5.1...v4.5.2
 [4.5.1]: https://github.com/Elocrypt/HudClock/compare/v4.5.0...v4.5.1
 [4.5.0]: https://github.com/Elocrypt/HudClock/compare/v4.4.1...v4.5.0
 [4.4.1]: https://github.com/Elocrypt/HudClock/compare/v4.4.0...v4.4.1
@@ -250,6 +255,7 @@ Complete rewrite of the mod on a new architecture. Feature parity with 3.x is pr
 [4.2.1]: https://github.com/Elocrypt/HudClock/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/Elocrypt/HudClock/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/Elocrypt/HudClock/compare/v4.0.0...v4.1.0
+[4.5.2-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.5.2
 [4.5.1-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.5.1
 [4.5.0-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.5.0
 [4.4.1-tag]: https://github.com/Elocrypt/HudClock/releases/tag/v4.4.1
